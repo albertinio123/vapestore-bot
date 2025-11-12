@@ -1,86 +1,195 @@
 {
   "E-Liquids / Skysčiai": {
-    "Core": [
+    "Riot Squad": [
       {
-        "title": "Peach Ice",
-        "description": "Saldus persikų skonis su gaiviu mentolio atspalviu.",
-        "price": 5,
-        "stock": 20,
-        "image": "https://images.vapestore.co.uk/peach-ice-pod-salt.jpg"
+        "title": "Strawberry & Raspberry",
+        "description": "Saldžių braškių ir aviečių mišinys su gaiviu poskoniu.",
+        "price": "5€",
+        "image": ""
       },
       {
-        "title": "Vanilla",
-        "description": "Švelnus vanilės skonis maloniam garinimui.",
-        "price": 5,
-        "stock": 20,
-        "image": "https://images.vapestore.co.uk/vanilla-pod-salt.jpg"
+        "title": "Blue Burst",
+        "description": "Ledinis mėlynių skonio sprogimas, puikiai gaivina.",
+        "price": "5€",
+        "image": ""
       },
       {
-        "title": "Mango Ice",
-        "description": "Tropinių mangų skonis su šaldančia nata.",
-        "price": 5,
-        "stock": 20,
-        "image": "https://images.vapestore.co.uk/mango-ice-pod-salt.jpg"
+        "title": "Tropical Fury",
+        "description": "Egzotiškas mango, ananaso ir papajos derinys.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Menthol Blast",
+        "description": "Stiprus mentolio vėsos pojūtis — idealus mėgstantiems gaivą.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Bubblegum Grenade",
+        "description": "Klasikinė kramtomosios gumos bomba su saldžiu poskoniu.",
+        "price": "5€",
+        "image": ""
       }
     ],
-    "Nexus": [
+    "IVG": [
       {
-        "title": "Pineapple Passion Lime",
-        "description": "Ananasų, pasiflorų ir laimo mišinys – tikra atostogų dvasia.",
-        "price": 5,
-        "stock": 10,
-        "image": "https://images.vapestore.co.uk/pineapple-passion-lime-pod-salt.jpg"
+        "title": "Summer Blaze",
+        "description": "Citrusinių vaisių ir uogų gaiva — tobulas vasariškas skonis.",
+        "price": "5€",
+        "image": ""
       },
       {
-        "title": "Mango Strawberry Peach",
-        "description": "Mango, braškių ir persikų mišinys – saldus ir gaivus.",
-        "price": 5,
-        "stock": 10,
-        "image": "https://images.vapestore.co.uk/mango-strawberry-peach-pod-salt.jpg"
-      }
-    ]
-  },
-  "Pods / Pod sistemos": {
-    "Closed Pods": [
+        "title": "Blue Raspberry",
+        "description": "Saldžiarūgštis mėlynių skonio garas su švelniu lediniu atspalviu.",
+        "price": "5€",
+        "image": ""
+      },
       {
-        "title": "Elf Bar ELFA Pod System",
-        "description": "Uždara pod sistema su pakraunama baterija ir keičiamais užpildais.",
-        "price": 10,
-        "stock": 8,
-        "image": "https://images.vapestore.co.uk/elfbar-elfa.jpg"
-      }
-    ]
-  },
-  "Mods / Modai": {
-    "Box Mods": [
+        "title": "Riberry Lemonade",
+        "description": "Citrinų limonadas su raudonųjų uogų nata.",
+        "price": "5€",
+        "image": ""
+      },
       {
-        "title": "Voopoo Drag X Mod",
-        "description": "Galingas modas su moderniu dizainu ir baterijos indikacija.",
-        "price": 45,
-        "stock": 5,
-        "image": "https://images.vapestore.co.uk/voopoo-drag-x.jpg"
-      }
-    ]
-  },
-  "Coils / Kaitinimo galvutės": {
-    "Mesh Coils": [
+        "title": "Bubblegum Millions",
+        "description": "Ryškus saldžios kramtomosios gumos skonis su vaisių dvelksmu.",
+        "price": "5€",
+        "image": ""
+      },
       {
-        "title": "SMOK Mesh Coil 0.15Ω",
-        "description": "Puikus skonis ir dūmų tankis, suderinama su SMOK TFV16.",
-        "price": 4,
-        "stock": 30,
-        "image": "https://images.vapestore.co.uk/smok-coil.jpg"
+        "title": "Kiwi Passionfruit Guava",
+        "description": "Egzotiškas kivio, pasifloros ir gvajavos derinys.",
+        "price": "5€",
+        "image": ""
       }
-    ]
-  },
-  "Accessories / Priedai": {
-    "Chargers": [
+    ],
+    "Pod Salt": [
       {
-        "title": "USB-C Greitas Įkroviklis",
-        "description": "Universalus įkroviklis visiems vape įrenginiams.",
-        "price": 7,
-        "stock": 12,
-        "image": "https://images.vapestore.co.uk/usb-c-charger.jpg"
+        "title": "Banana Ice",
+        "description": "Kreminis bananų skonis su šaltu mentolio efektu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Blueberry Pomegranate",
+        "description": "Mėlynių ir granatų duetas su subalansuota saldžia nata.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Watermelon Breeze",
+        "description": "Gaivus arbūzų skonis su lengvu vėsinančiu efektu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Cola with Lime",
+        "description": "Klasikinis kolos skonis su gaiviu laimo prieskoniu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Strawberry Kiwi",
+        "description": "Saldžių braškių ir rūgštoko kivio harmonija.",
+        "price": "5€",
+        "image": ""
+      }
+    ],
+    "Elf Bar": [
+      {
+        "title": "Watermelon Ice",
+        "description": "Populiarus arbūzų skonis su šaltu atspalviu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Blue Razz Lemonade",
+        "description": "Mėlynių limonadas su saldžiu burbuliuku.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Pink Grapefruit",
+        "description": "Rūgštus ir gaivus rausvųjų greipfrutų skonis.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Mango Peach",
+        "description": "Saldus mango ir sultingų persikų derinys.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Strawberry Ice Cream",
+        "description": "Kreminis braškių ledų skonis — saldus ir švelnus.",
+        "price": "5€",
+        "image": ""
+      }
+    ],
+    "Bar Juice": [
+      {
+        "title": "Cherry Ice",
+        "description": "Saldžios vyšnios su gaiviu mentolio prieskoniu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Kiwi Passionfruit Guava",
+        "description": "Egzotiškų vaisių miksas su švelniu rūgštumu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Strawberry Raspberry Ice",
+        "description": "Uogų mišinys su šaltu gaivumo efektu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Apple Peach",
+        "description": "Gaivus obuolių ir persikų skonis — natūraliai saldus.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Grape",
+        "description": "Klasikinis vynuogių skonis su lengvu švelnumu.",
+        "price": "5€",
+        "image": ""
+      }
+    ],
+    "Elux Legend": [
+      {
+        "title": "Tiger Blood",
+        "description": "Tropinių vaisių ir braškių derinys su vėsinančiu efektu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Fizzy Cherry",
+        "description": "Gaivi putojanti vyšnia su švelniu saldumu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Blueberry Sour Raspberry",
+        "description": "Saldžiarūgštis mėlynių ir aviečių skonis.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Peach Ice",
+        "description": "Sultingas persikas su gaiviu ledo poskoniu.",
+        "price": "5€",
+        "image": ""
+      },
+      {
+        "title": "Cola",
+        "description": "Autentiškas kolos gėrimo skonis su saldžiu burbuliuku.",
+        "price": "5€",
+        "image": ""
       }
     ]
   }
