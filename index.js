@@ -54,9 +54,10 @@ async function setupWebhook() {
 }
 
 // === MARŠRUTAI ===
-app.post(`/webhook/${TOKEN}`, (req, res) => {
+app.post("/api/bot", (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
+});
 });
 
 app.get("/", (req, res) => {
