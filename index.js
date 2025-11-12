@@ -5,18 +5,16 @@ import { dirname, join } from "path";
 import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(__filename file);
 
 const app = express();
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
 
-const TOKEN = process.env.BOT_TOKEN;
-if (!TOKEN) throw new Error("BOT_TOKEN nėra!");
-
+const TOKEN = "8344670356:AAEPzOzLfS02mRS5BjtSJpDjdYdMobiZW5w"; // TAVO BOT_TOKEN
 const PORT = process.env.PORT || 3000;
 const URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
-const ADMIN_ID = 123456789; // <--- ČIA ĮRAŠYK SAVO ID IŠ @userinfobot
+const ADMIN_ID = 112336357; // TAVO TELEGRAM ID
 const ADMIN_PANEL_URL = `${URL}/admin`;
 
 let products = {};
@@ -38,13 +36,16 @@ async function setupWebhook() {
   const webhookUrl = `${URL}/webhook/${TOKEN}`;
   try {
     const info = await bot.getWebHookInfo();
-    if (info.url !== webhookUrl) await bot.setWebHook(webhookUrl);
-    console.log("Webhook:", webhookUrl);
+    if (info.url !== webhookUrl) {
+      await bot.setWebHook(webhookUrl);
+      console.log("Webhook nustatytas:", webhookUrl);
+    }
   } catch (err) {
     console.error("Webhook klaida:", err.message);
   }
 }
 
+// === MARŠRUTAI ===
 app.post(`/webhook/${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
@@ -73,6 +74,7 @@ app.post("/api/products", (req, res) => {
   res.json({ success: true });
 });
 
+// === BOT KOMANDOS ===
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, "Sveikas atvykęs į *VapeStore*!", {
     parse_mode: "Markdown",
@@ -81,13 +83,13 @@ bot.onText(/\/start/, (msg) => {
 });
 
 bot.onText(/\/admin/, (msg) => {
-  if (msg.from.id !== ADMIN_ID) return bot.sendMessage(msg.chat.id, "Draudžiama.");
+  if (msg.from.id !== ADMIN_ID) return bot.sendMessage(msg.chat.id, "Prieiga draudžiama.");
   bot.sendMessage(msg.chat.id, `Admin panelė: ${ADMIN_PANEL_URL}`);
 });
 
 bot.on("callback_query", (q) => {
   const chatId = q.message.chat.id;
-  data = q.data;
+  const data = q.data;
 
   if (data === "list_brands") {
     const brands = Object.keys(products);
@@ -116,6 +118,7 @@ bot.on("callback_query", (q) => {
   bot.answerCallbackQuery(q.id);
 });
 
+// === PALEIDIMAS ===
 app.listen(PORT, () => {
   console.log(`Boto URL: ${URL}`);
   console.log(`Admin panelė: ${ADMIN_PANEL_URL}`);
