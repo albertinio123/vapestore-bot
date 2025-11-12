@@ -12,6 +12,12 @@
         "description": "Saldžios mėlynės ir švelnus garas / Sweet blueberry and smooth vapor",
         "image": "https://cdn.vawoo.com/files/images/thumbs/0188312_lost-mary-bm600-blueberry.jpeg",
         "price": ""
+      },
+      {
+        "title": "Elfliq Mango 10ml",
+        "description": "Mango skonio e-skystis / Mango flavored e-liquid",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0201811_elfliq-mango.jpeg",
+        "price": ""
       }
     ],
     "Menthol": [
@@ -19,6 +25,12 @@
         "title": "Vampire Vape Heisenberg",
         "description": "Mentolio ir mėlynių derinys / Menthol and berry blend",
         "image": "https://cdn.vawoo.com/files/images/thumbs/0177321_vampire-vape-heisenberg.jpeg",
+        "price": ""
+      },
+      {
+        "title": "IVG Menthol Mojito",
+        "description": "Citrusinė gaiva ir mėtų skonis / Citrus mint blend",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0159517_ivg-menthol-mojito.jpeg",
         "price": ""
       }
     ]
@@ -30,6 +42,12 @@
         "description": "Lengva naudoti pod sistema / Easy-to-use pod system",
         "image": "https://cdn.vawoo.com/files/images/thumbs/0199108_elf-bar-elfa-pod-kit.jpeg",
         "price": ""
+      },
+      {
+        "title": "Vuse ePod 2",
+        "description": "Klasikinė uždara pod sistema / Classic closed pod system",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0179139_vuse-epod2.jpeg",
+        "price": ""
       }
     ],
     "Open": [
@@ -37,6 +55,70 @@
         "title": "Vaporesso XROS 3",
         "description": "Populiari atviro tipo pod sistema / Popular open-type pod system",
         "image": "https://cdn.vawoo.com/files/images/thumbs/0188612_vaporesso-xros3.jpeg",
+        "price": ""
+      },
+      {
+        "title": "Uwell Caliburn G3",
+        "description": "Kokybiška pod sistema su stipriu garu / Quality pod with strong vapor",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0187421_uwell-caliburn-g3.jpeg",
+        "price": ""
+      }
+    ]
+  },
+  "Mods / Modai": {
+    "Box": [
+      {
+        "title": "GeekVape Aegis Solo 2",
+        "description": "Tvirtas ir galingas modas / Durable and powerful mod",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0156211_geekvape-aegis-solo-2.jpeg",
+        "price": ""
+      },
+      {
+        "title": "Vaporesso Gen 200",
+        "description": "Lengvas ir universalus modas / Lightweight and versatile mod",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0168911_vaporesso-gen-200.jpeg",
+        "price": ""
+      }
+    ],
+    "Mechanical": [
+      {
+        "title": "Vaperz Cloud Hammer of God",
+        "description": "Mechaninis modas pažengusiems / Mechanical mod for advanced users",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0176211_vaperz-cloud-hog.jpeg",
+        "price": ""
+      }
+    ]
+  },
+  "Coils / Kaitinimo galvutės": {
+    "Mesh": [
+      {
+        "title": "Vaporesso GTX 0.2Ω",
+        "description": "Aukštos kokybės tinklelio coil / High-performance mesh coil",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0162811_vaporesso-gtx-coils.jpeg",
+        "price": ""
+      },
+      {
+        "title": "Uwell Caliburn G Coils 1.0Ω",
+        "description": "Puikiai tinka MTL garinimui / Ideal for MTL vaping",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0171111_uwell-caliburn-g-coils.jpeg",
+        "price": ""
+      }
+    ]
+  },
+  "Accessories / Priedai": {
+    "Chargers": [
+      {
+        "title": "Nitecore i2 Charger",
+        "description": "Universalus akumuliatorių kroviklis / Universal battery charger",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0155111_nitecore-i2.jpeg",
+        "price": ""
+      }
+    ],
+    "Tanks": [
+      {
+        "title": "Aspire Nautilus 3 Tank",
+        "description": "Populiarus 24mm bakelis / Popular 24mm tank",
+        "image": "https://cdn.vawoo.com/files/images/thumbs/0169111_aspire-nautilus-3.jpeg",
         "price": ""
       }
     ]
