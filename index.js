@@ -60,12 +60,11 @@ app.post("/api/bot", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const subcats = Object.keys(categoryData); // pvz. "Fruit / Vaisių", "Menthol / Mentoliniai" ...
+    const subcats = Object.keys(categoryData);
     const buttons = subcats.map((s) => [
       { text: s, callback_data: `sub:${catId}:${encodeURIComponent(s)}` },
     ]);
 
-    // pridedam atgal
     buttons.push([{ text: "🏠 Main Menu", callback_data: "home" }]);
 
     await sendMessage(chatId, `📦 *${catKey}*`, {
@@ -95,7 +94,6 @@ app.post("/api/bot", async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // išsiunčiam po nuotrauką kiekvienam produktui
     for (const item of items) {
       const caption = `*${item.title}*\n${item.description}${
         item.price ? `\n\n💰 ${item.price}` : ""
@@ -103,7 +101,6 @@ app.post("/api/bot", async (req, res) => {
       await sendPhoto(chatId, item.image, caption);
     }
 
-    // navigacijos mygtukai
     await sendMessage(chatId, "⬅️ Navigacija", {
       reply_markup: {
         inline_keyboard: [
@@ -120,7 +117,6 @@ app.post("/api/bot", async (req, res) => {
     return res.sendStatus(200);
   }
 
-  // Numatytasis atsakymas
   res.sendStatus(200);
 });
 
@@ -151,4 +147,5 @@ async function sendPhoto(chatId, photo, caption = "") {
   });
 }
 
-app.listen(3000, () => console.log("✅ Bot running on port 3000"));
+// ---- Svarbiausia vieta! ----
+export default app;
