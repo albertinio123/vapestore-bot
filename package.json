@@ -4,6 +4,6 @@
   "type": "module",
   "dependencies": {
     "express": "latest",
-    "node-fetch": "latest"
+    "dotenv": "latest"
   }
 }
