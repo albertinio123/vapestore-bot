@@ -1,5 +1,5 @@
 import express from "express";
-import fetch from "node-fetch";
+import "dotenv/config";
 
 const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
@@ -7,7 +7,7 @@ const API = `https://api.telegram.org/bot${TOKEN}`;
 const app = express();
 app.use(express.json());
 
-// ✅ MAIN MENU (inline buttons)
+// Main menu with inline buttons
 const mainMenu = {
   reply_markup: {
     inline_keyboard: [
@@ -20,7 +20,7 @@ const mainMenu = {
   }
 };
 
-// ✅ ROUTE FOR TELEGRAM WEBHOOK
+// Route for Telegram webhook
 app.post("/api/bot", async (req, res) => {
   const msg = req.body.message;
   const data = req.body.callback_query;
@@ -34,35 +34,23 @@ app.post("/api/bot", async (req, res) => {
     );
   }
 
-  // Handle CATEGORY CLICK
+  // Handle category button clicks
   if (data) {
     const chatId = data.message.chat.id;
-
-    if (data.data === "eliquids") {
-      await sendMessage(
-        chatId,
-        "📦 *E-Liquids katalogas*\n\nČia bus jūsų skonių kategorijos.",
-        {}
-      );
-    }
-    if (data.data === "pods") {
-      await sendMessage(chatId, "📦 *Pod sistemų katalogas*.", {});
-    }
-    if (data.data === "mods") {
-      await sendMessage(chatId, "⚙️ *Modų katalogas*.", {});
-    }
-    if (data.data === "coils") {
-      await sendMessage(chatId, "🔥 *Coil'ų katalogas*.", {});
-    }
-    if (data.data === "accessories") {
-      await sendMessage(chatId, "🎒 *Priedų katalogas*.", {});
-    }
+    const texts = {
+      eliquids: "📦 *E-Liquids katalogas*\n\nČia bus jūsų skonių kategorijos.",
+      pods: "📦 *Pod sistemų katalogas*.",
+      mods: "⚙️ *Modų katalogas*.",
+      coils: "🔥 *Coil'ų katalogas*.",
+      accessories: "🎒 *Priedų katalogas*."
+    };
+    await sendMessage(chatId, texts[data.data] || "❓ Nežinoma komanda");
   }
 
   res.sendStatus(200);
 });
 
-// ✅ SEND MESSAGE FUNCTION
+// Function to send messages via Telegram API
 async function sendMessage(chatId, text, extra = {}) {
   await fetch(`${API}/sendMessage`, {
     method: "POST",
@@ -76,4 +64,4 @@ async function sendMessage(chatId, text, extra = {}) {
   });
 }
 
-app.listen(3000, () => console.log("Bot running"));
+app.listen(3000, () => console.log("✅ Bot running"));
