@@ -3,13 +3,13 @@
     {
       "name": "🧃 Blue Burst",
       "description": "*Ledinių mėlynių limonadas* – gaivus ir šaltas skonis vasaros dienoms! 10ml, 20mg nikotino.",
-      "photo_url": "https://i.imgur.com/example-blue.jpg",
+      "photo_url": "https://i.imgur.com/2z5K3jL.jpg",
       "price": 5
     },
     {
       "name": "💣 Pink Grenade",
       "description": "*Citrinų ir braškių sprogimas* – sprogstantis vaisių mišinys, idealus pradedantiesiems.",
-      "photo_url": "https://i.imgur.com/example-pink.jpg",
+      "photo_url": "https://i.imgur.com/7qX8v4M.jpg",
       "price": 5
     }
   ],
@@ -17,13 +17,13 @@
     {
       "name": "🍬 Bubblegum",
       "description": "*Saldi kramtomoji guma* – klasikinis saldus skonis, primenantis vaikystę. 10ml.",
-      "photo_url": "https://i.imgur.com/example-bubble.jpg",
+      "photo_url": "https://i.imgur.com/9pR2t5N.jpg",
       "price": 6
     },
     {
       "name": "🌈 Rainbow Blast",
       "description": "*Vaivorykštės skonių mišinys* – daugybė vaisių viename buteliuke, eksplozija skonių!",
-      "photo_url": "https://i.imgur.com/example-rainbow.jpg",
+      "photo_url": "https://i.imgur.com/4mS6u7P.jpg",
       "price": 6
     }
   ]
