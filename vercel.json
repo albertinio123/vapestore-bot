@@ -1,9 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "index.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/bot", "dest": "/index.js" }
-  ]
+  "builds": [{ "src": "index.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/api/bot", "dest": "/index.js" }],
+  "includeFiles": ["products.json"]
 }
