@@ -16,7 +16,7 @@ if (!TOKEN) throw new Error("BOT_TOKEN nėra!");
 
 const PORT = process.env.PORT || 3000;
 const URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
-const ADMIN_ID = 123456789; // KEISK Į SAVO TELEGRAM ID (@userinfobot)
+const ADMIN_ID = 123456789; // <--- ČIA ĮRAŠYK SAVO ID IŠ @userinfobot
 const ADMIN_PANEL_URL = `${URL}/admin`;
 
 let products = {};
@@ -87,7 +87,7 @@ bot.onText(/\/admin/, (msg) => {
 
 bot.on("callback_query", (q) => {
   const chatId = q.message.chat.id;
-  const data = q.data;
+  data = q.data;
 
   if (data === "list_brands") {
     const brands = Object.keys(products);
