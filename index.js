@@ -1,16 +1,20 @@
 import express from "express";
 import "dotenv/config";
 import fs from "fs";
+import path from "path";
 
 // Jei fetch nėra (kai kurios Node versijos), pridedam node-fetch
 if (typeof fetch === "undefined") {
   global.fetch = (await import("node-fetch")).default;
 }
 
-// Nuskaitom produktų JSON
+// ✅ Nuskaitom produktų JSON saugiai su absoliučiu keliu
 let products = {};
 try {
-  products = JSON.parse(fs.readFileSync("products.json", "utf-8"));
+  const filePath = path.join(process.cwd(), "products.json");
+  const jsonData = fs.readFileSync(filePath, "utf-8");
+  products = JSON.parse(jsonData);
+  console.log("✅ products.json sėkmingai nuskaitytas");
 } catch (err) {
   console.error("❌ Nepavyko nuskaityti products.json:", err.message);
 }
@@ -56,6 +60,7 @@ app.post("/api/bot", async (req, res) => {
       const categoryData = products[category];
 
       if (!categoryData) {
+        console.warn(`⚠️ Kategorija nerasta: ${category}`);
         await sendMessage(chatId, "❌ Kategorija nerasta.");
         return res.sendStatus(200);
       }
