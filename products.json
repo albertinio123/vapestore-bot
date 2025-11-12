@@ -4,19 +4,6 @@
     { "name": "Pink Grenade", "description": "Citrinų ir braškių sprogimas" }
   ],
   "IVG": [
-    { "name": "Bubblegum", "description": "Saldi kramtomoji guma" },
-    { "name": "Kiwi Kool", "description": "Atgaivinantis kivio ir mentolio mišinys" }
-  ],
-  "Pod Salt": [
-    { "name": "Vanilla Ice", "description": "Vanilinis ledų kokteilis" }
-  ],
-  "Elf Bar": [
-    { "name": "Strawberry Ice", "description": "Šaltos braškės" }
-  ],
-  "Bar Juice": [
-    { "name": "Watermelon Ice", "description": "Ledinis arbūzas" }
-  ],
-  "Elux Legend": [
-    { "name": "Mango Peach", "description": "Tropinių vaisių švelnumas" }
+    { "name": "Bubblegum", "description": "Saldi kramtomoji guma" }
   ]
 }
