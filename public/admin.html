@@ -2,7 +2,6 @@
 <html lang="lt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>VapeStore Admin</title>
   <style>
     body { font-family: Arial; padding: 20px; background: #f4f4f4; }
@@ -12,14 +11,17 @@
     button:hover { background: #0056b3; }
     .product { padding: 10px; margin: 10px 0; background: #f8f9fa; border-radius: 5px; border: 1px solid #eee; }
     h3 { margin: 15px 0 5px; color: #333; }
+    #photo_url { color: blue; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>VapeStore Admin Panelė</h1>
     <input type="text" id="brand" placeholder="Brendas (pvz. Riot Squad)" />
-    <input type="text" id="name" placeholder="Skonio pavadinimas" />
-    <textarea id="desc" placeholder="Aprašymas" rows="3"></textarea>
+    <input type="text" id="name" placeholder="Skonio pavadinimas (su emoji pvz. 🧃 Blue Burst)" />
+    <textarea id="desc" placeholder="Aprašymas (naudok *bold*, _italika_)" rows="3"></textarea>
+    <input type="url" id="photo_url" placeholder="Nuotraukos URL (iš Imgur)" />
+    <input type="number" id="price" placeholder="Kaina € (pvz. 5)" min="1" step="0.01" />
     <button onclick="addProduct()">Pridėti produktą</button>
     <hr>
     <div id="list">Kraunama...</div>
@@ -36,12 +38,18 @@
           const div = document.createElement("div");
           div.innerHTML = `<h3>${brand}</h3>`;
           items.forEach(item => {
-            div.innerHTML += `<div class="product"><strong>${item.name}</strong><br><small>${item.description}</small></div>`;
+            div.innerHTML += `
+              <div class="product">
+                <strong>${item.name}</strong> – ${item.price} €<br>
+                <small>${item.description}</small><br>
+                <img src="${item.photo_url}" width="100" alt="Nuotrauka"><br>
+                <a href="${item.photo_url}" target="_blank">Žiūrėti nuotrauką</a>
+              </div>`;
           });
           list.appendChild(div);
         }
       } catch {
-        list.innerHTML = "Klaida. Patikrink serverį.";
+        document.getElementById("list").innerHTML = "Klaida. Patikrink serverį.";
       }
     }
 
@@ -49,15 +57,15 @@
       const brand = document.getElementById("brand").value.trim();
       const name = document.getElementById("name").value.trim();
       const desc = document.getElementById("desc").value.trim();
-      if (!brand || !name || !desc) return alert("Užpildyk viską!");
+      const photo_url = document.getElementById("photo_url").value.trim();
+      const price = parseFloat(document.getElementById("price").value) || 5;
+      if (!brand || !name || !desc) return alert("Užpildyk pagrindinius laukus!");
       await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brand, name, description: desc })
+        body: JSON.stringify({ brand, name, description: desc, photo_url, price })
       });
-      document.getElementById("brand").value = "";
-      document.getElementById("name").value = "";
-      document.getElementById("desc").value = "";
+      document.querySelectorAll("input, textarea").forEach(el => el.value = "");
       loadProducts();
     }
 
