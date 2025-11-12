@@ -1,9 +1,30 @@
 {
   "Riot Squad": [
-    { "name": "Blue Burst", "description": "Ledinių mėlynių limonadas" },
-    { "name": "Pink Grenade", "description": "Citrinų ir braškių sprogimas" }
+    {
+      "name": "🧃 Blue Burst",
+      "description": "*Ledinių mėlynių limonadas* – gaivus ir šaltas skonis vasaros dienoms! 10ml, 20mg nikotino.",
+      "photo_url": "https://i.imgur.com/example-blue.jpg",
+      "price": 5
+    },
+    {
+      "name": "💣 Pink Grenade",
+      "description": "*Citrinų ir braškių sprogimas* – sprogstantis vaisių mišinys, idealus pradedantiesiems.",
+      "photo_url": "https://i.imgur.com/example-pink.jpg",
+      "price": 5
+    }
   ],
   "IVG": [
-    { "name": "Bubblegum", "description": "Saldi kramtomoji guma" }
+    {
+      "name": "🍬 Bubblegum",
+      "description": "*Saldi kramtomoji guma* – klasikinis saldus skonis, primenantis vaikystę. 10ml.",
+      "photo_url": "https://i.imgur.com/example-bubble.jpg",
+      "price": 6
+    },
+    {
+      "name": "🌈 Rainbow Blast",
+      "description": "*Vaivorykštės skonių mišinys* – daugybė vaisių viename buteliuke, eksplozija skonių!",
+      "photo_url": "https://i.imgur.com/example-rainbow.jpg",
+      "price": 6
+    }
   ]
 }
