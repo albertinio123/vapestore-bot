@@ -1,139 +1,86 @@
 {
-  "E-liquids": {
+  "E-Liquids / Skysčiai": {
     "Core": [
       {
-        "brand": "Pod Salt Core",
-        "name": "Peach Ice",
+        "title": "Peach Ice",
+        "description": "Saldus persikų skonis su gaiviu mentolio atspalviu.",
         "price": 5,
         "stock": 20,
-        "image": "https://images.vapestore.co.uk/peach-ice-pod-salt.jpg",
-        "description": "Deliciously sweet peach flavour blended with an icy menthol finish."
+        "image": "https://images.vapestore.co.uk/peach-ice-pod-salt.jpg"
       },
       {
-        "brand": "Pod Salt Core",
-        "name": "Vanilla",
+        "title": "Vanilla",
+        "description": "Švelnus vanilės skonis maloniam garinimui.",
         "price": 5,
         "stock": 20,
-        "image": "https://images.vapestore.co.uk/vanilla-pod-salt.jpg",
-        "description": "Smooth and creamy vanilla flavour delivering a rich and satisfying vape."
+        "image": "https://images.vapestore.co.uk/vanilla-pod-salt.jpg"
       },
       {
-        "brand": "Pod Salt Core",
-        "name": "Mixed Berries Ice",
-        "price": 5,
-        "stock": 16,
-        "image": "https://images.vapestore.co.uk/mixed-berries-ice-pod-salt.jpg",
-        "description": "A burst of sweet and tart mixed berries with a cool icy edge."
-      },
-      {
-        "brand": "Pod Salt Core",
-        "name": "Mango Ice",
+        "title": "Mango Ice",
+        "description": "Tropinių mangų skonis su šaldančia nata.",
         "price": 5,
         "stock": 20,
-        "image": "https://images.vapestore.co.uk/mango-ice-pod-salt.jpg",
-        "description": "Tropical mango flavour perfectly balanced with a refreshing ice exhale."
-      },
-      {
-        "brand": "Pod Salt Core",
-        "name": "Blue Ice",
-        "price": 5,
-        "stock": 8,
-        "image": "https://images.vapestore.co.uk/blue-ice-pod-salt.jpg",
-        "description": "Cool blueberry and menthol combination for a crisp and refreshing vape."
+        "image": "https://images.vapestore.co.uk/mango-ice-pod-salt.jpg"
       }
     ],
     "Nexus": [
       {
-        "brand": "Pod Salt Nexus",
-        "name": "Pineapple Passion Lime",
+        "title": "Pineapple Passion Lime",
+        "description": "Ananasų, pasiflorų ir laimo mišinys – tikra atostogų dvasia.",
         "price": 5,
         "stock": 10,
-        "image": "https://images.vapestore.co.uk/pineapple-passion-lime-pod-salt.jpg",
-        "description": "Exotic blend of pineapple, passion fruit and lime for a vibrant tropical taste."
+        "image": "https://images.vapestore.co.uk/pineapple-passion-lime-pod-salt.jpg"
       },
       {
-        "brand": "Pod Salt Nexus",
-        "name": "Mango Strawberry Peach",
+        "title": "Mango Strawberry Peach",
+        "description": "Mango, braškių ir persikų mišinys – saldus ir gaivus.",
         "price": 5,
         "stock": 10,
-        "image": "https://images.vapestore.co.uk/mango-strawberry-peach-pod-salt.jpg",
-        "description": "A perfect fusion of mango, strawberry and peach creating a juicy flavour burst."
+        "image": "https://images.vapestore.co.uk/mango-strawberry-peach-pod-salt.jpg"
       }
-    ],
-    "IVG Bar": [
+    ]
+  },
+  "Pods / Pod sistemos": {
+    "Closed Pods": [
       {
-        "brand": "IVG Bar Favourites",
-        "name": "Blackcurrant Mango",
-        "price": 5,
-        "stock": 10,
-        "image": "https://images.vapestore.co.uk/blackcurrant-mango-ivg.jpg",
-        "description": "Sweet mango blended with tart blackcurrant for a rich, fruity vape."
-      }
-    ],
-    "Crystal Clear": [
-      {
-        "brand": "Crystal Clear Bar Salt",
-        "name": "Xtreme Sour Apple",
-        "price": 5,
-        "stock": 14,
-        "image": "https://images.vapestore.co.uk/sour-apple-crystal.jpg",
-        "description": "Crisp sour apple flavour with an extra tangy bite for true fruit lovers."
-      }
-    ],
-    "SKE Crystal": [
-      {
-        "brand": "SKE Crystal Original",
-        "name": "Banana Ice",
-        "price": 5,
+        "title": "Elf Bar ELFA Pod System",
+        "description": "Uždara pod sistema su pakraunama baterija ir keičiamais užpildais.",
+        "price": 10,
         "stock": 8,
-        "image": "https://images.vapestore.co.uk/banana-ice-ske.jpg",
-        "description": "Smooth banana flavour with an icy chill for a refreshing all-day vape."
-      },
-      {
-        "brand": "SKE Crystal Original",
-        "name": "Juicy Peach",
-        "price": 5,
-        "stock": 25,
-        "image": "https://images.vapestore.co.uk/juicy-peach-ske.jpg",
-        "description": "Ripe and juicy peach flavour offering natural sweetness and smooth finish."
+        "image": "https://images.vapestore.co.uk/elfbar-elfa.jpg"
       }
-    ],
-    "IVG Intense": [
+    ]
+  },
+  "Mods / Modai": {
+    "Box Mods": [
       {
-        "brand": "IVG Intense",
-        "name": "Pineapple Ice",
-        "price": 5,
-        "stock": 17,
-        "image": "https://images.vapestore.co.uk/pineapple-ice-ivg.jpg",
-        "description": "Intensely refreshing pineapple with a cooling ice sensation."
+        "title": "Voopoo Drag X Mod",
+        "description": "Galingas modas su moderniu dizainu ir baterijos indikacija.",
+        "price": 45,
+        "stock": 5,
+        "image": "https://images.vapestore.co.uk/voopoo-drag-x.jpg"
       }
-    ],
-    "Just Juice": [
+    ]
+  },
+  "Coils / Kaitinimo galvutės": {
+    "Mesh Coils": [
       {
-        "brand": "Just Juice Bar",
-        "name": "Watermelon",
-        "price": 5,
-        "stock": 20,
-        "image": "https://images.vapestore.co.uk/watermelon-just-juice.jpg",
-        "description": "Classic sweet watermelon flavour with juicy freshness in every puff."
-      }
-    ],
-    "Just Juice Below Zero": [
-      {
-        "brand": "Just Juice Bar Below Zero",
-        "name": "Frozen Berry Gummy",
-        "price": 5,
+        "title": "SMOK Mesh Coil 0.15Ω",
+        "description": "Puikus skonis ir dūmų tankis, suderinama su SMOK TFV16.",
+        "price": 4,
         "stock": 30,
-        "image": "https://images.vapestore.co.uk/frozen-berry-gummy-just-juice.jpg",
-        "description": "Chilled berry gummy mix delivering sweet, icy and nostalgic candy flavour."
-      },
+        "image": "https://images.vapestore.co.uk/smok-coil.jpg"
+      }
+    ]
+  },
+  "Accessories / Priedai": {
+    "Chargers": [
       {
-        "brand": "Just Juice Bar Below Zero",
-        "name": "Triple Mango",
-        "price": 5,
-        "stock": 20,
-        "image": "https://images.vapestore.co.uk/triple-mango-just-juice.jpg",
-        "description": "An explosion of triple mango tones with a smooth, icy finish."
+        "title": "USB-C Greitas Įkroviklis",
+        "description": "Universalus įkroviklis visiems vape įrenginiams.",
+        "price": 7,
+        "stock": 12,
+        "image": "https://images.vapestore.co.uk/usb-c-charger.jpg"
       }
     ]
   }
