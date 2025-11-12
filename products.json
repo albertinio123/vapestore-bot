@@ -1,196 +1,22 @@
 {
-  "E-Liquids / Skysčiai": {
-    "Riot Squad": [
-      {
-        "title": "Strawberry & Raspberry",
-        "description": "Saldžių braškių ir aviečių mišinys su gaiviu poskoniu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Blue Burst",
-        "description": "Ledinis mėlynių skonio sprogimas, puikiai gaivina.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Tropical Fury",
-        "description": "Egzotiškas mango, ananaso ir papajos derinys.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Menthol Blast",
-        "description": "Stiprus mentolio vėsos pojūtis — idealus mėgstantiems gaivą.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Bubblegum Grenade",
-        "description": "Klasikinė kramtomosios gumos bomba su saldžiu poskoniu.",
-        "price": "5€",
-        "image": ""
-      }
-    ],
-    "IVG": [
-      {
-        "title": "Summer Blaze",
-        "description": "Citrusinių vaisių ir uogų gaiva — tobulas vasariškas skonis.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Blue Raspberry",
-        "description": "Saldžiarūgštis mėlynių skonio garas su švelniu lediniu atspalviu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Riberry Lemonade",
-        "description": "Citrinų limonadas su raudonųjų uogų nata.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Bubblegum Millions",
-        "description": "Ryškus saldžios kramtomosios gumos skonis su vaisių dvelksmu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Kiwi Passionfruit Guava",
-        "description": "Egzotiškas kivio, pasifloros ir gvajavos derinys.",
-        "price": "5€",
-        "image": ""
-      }
-    ],
-    "Pod Salt": [
-      {
-        "title": "Banana Ice",
-        "description": "Kreminis bananų skonis su šaltu mentolio efektu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Blueberry Pomegranate",
-        "description": "Mėlynių ir granatų duetas su subalansuota saldžia nata.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Watermelon Breeze",
-        "description": "Gaivus arbūzų skonis su lengvu vėsinančiu efektu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Cola with Lime",
-        "description": "Klasikinis kolos skonis su gaiviu laimo prieskoniu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Strawberry Kiwi",
-        "description": "Saldžių braškių ir rūgštoko kivio harmonija.",
-        "price": "5€",
-        "image": ""
-      }
-    ],
-    "Elf Bar": [
-      {
-        "title": "Watermelon Ice",
-        "description": "Populiarus arbūzų skonis su šaltu atspalviu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Blue Razz Lemonade",
-        "description": "Mėlynių limonadas su saldžiu burbuliuku.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Pink Grapefruit",
-        "description": "Rūgštus ir gaivus rausvųjų greipfrutų skonis.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Mango Peach",
-        "description": "Saldus mango ir sultingų persikų derinys.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Strawberry Ice Cream",
-        "description": "Kreminis braškių ledų skonis — saldus ir švelnus.",
-        "price": "5€",
-        "image": ""
-      }
-    ],
-    "Bar Juice": [
-      {
-        "title": "Cherry Ice",
-        "description": "Saldžios vyšnios su gaiviu mentolio prieskoniu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Kiwi Passionfruit Guava",
-        "description": "Egzotiškų vaisių miksas su švelniu rūgštumu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Strawberry Raspberry Ice",
-        "description": "Uogų mišinys su šaltu gaivumo efektu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Apple Peach",
-        "description": "Gaivus obuolių ir persikų skonis — natūraliai saldus.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Grape",
-        "description": "Klasikinis vynuogių skonis su lengvu švelnumu.",
-        "price": "5€",
-        "image": ""
-      }
-    ],
-    "Elux Legend": [
-      {
-        "title": "Tiger Blood",
-        "description": "Tropinių vaisių ir braškių derinys su vėsinančiu efektu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Fizzy Cherry",
-        "description": "Gaivi putojanti vyšnia su švelniu saldumu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Blueberry Sour Raspberry",
-        "description": "Saldžiarūgštis mėlynių ir aviečių skonis.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Peach Ice",
-        "description": "Sultingas persikas su gaiviu ledo poskoniu.",
-        "price": "5€",
-        "image": ""
-      },
-      {
-        "title": "Cola",
-        "description": "Autentiškas kolos gėrimo skonis su saldžiu burbuliuku.",
-        "price": "5€",
-        "image": ""
-      }
-    ]
-  }
+  "Riot Squad": [
+    { "name": "Blue Burst", "description": "Ledinių mėlynių limonadas" },
+    { "name": "Pink Grenade", "description": "Citrinų ir braškių sprogimas" }
+  ],
+  "IVG": [
+    { "name": "Bubblegum", "description": "Saldi kramtomoji guma" },
+    { "name": "Kiwi Kool", "description": "Atgaivinantis kivio ir mentolio mišinys" }
+  ],
+  "Pod Salt": [
+    { "name": "Vanilla Ice", "description": "Vanilinis ledų kokteilis" }
+  ],
+  "Elf Bar": [
+    { "name": "Strawberry Ice", "description": "Šaltos braškės" }
+  ],
+  "Bar Juice": [
+    { "name": "Watermelon Ice", "description": "Ledinis arbūzas" }
+  ],
+  "Elux Legend": [
+    { "name": "Mango Peach", "description": "Tropinių vaisių švelnumas" }
+  ]
 }
