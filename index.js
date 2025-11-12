@@ -1,61 +1,61 @@
+import TelegramBot from "node-telegram-bot-api";
 import fs from "fs";
 
-const data = JSON.parse(fs.readFileSync("products.json", "utf8"));
+// tavo Telegram botos token
+const token = process.env.BOT_TOKEN;
+const bot = new TelegramBot(token, { polling: true });
 
-console.log("Sveiki! Čia VAPE skysčių katalogas 💨");
-console.log("Pasirinkite brendą iš šių variantų:\n");
+// užkraunam produktus
+const products = JSON.parse(fs.readFileSync("./products.json", "utf8"));
 
-const brands = Object.keys(data["E-Liquids / Skysčiai"]);
-
-brands.forEach((brand, index) => {
-  console.log(`${index + 1}. ${brand}`);
+// paleidimo žinutė
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(chatId, "Sveikas atvykęs į VAPE STORE 💨\nPasirinkite kategoriją:", {
+    reply_markup: {
+      inline_keyboard: [[{ text: "💨 Skysčiai", callback_data: "skysciai" }]],
+    },
+  });
 });
 
-const readline = await import("readline");
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+// kai spaudžiam „Skysčiai“
+bot.on("callback_query", (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
 
-function klauskBrendo() {
-  rl.question("\nĮveskite brendo numerį: ", (ats) => {
-    const pasirinktas = parseInt(ats) - 1;
-    if (isNaN(pasirinktas) || pasirinktas < 0 || pasirinktas >= brands.length) {
-      console.log("❌ Neteisingas pasirinkimas. Bandykite dar kartą.");
-      klauskBrendo();
-      return;
-    }
-
-    const brandName = brands[pasirinktas];
-    const flavors = data["E-Liquids / Skysčiai"][brandName];
-    console.log(`\nPasirinkote: ${brandName}`);
-    console.log("Galimi skoniai:\n");
-
-    flavors.forEach((item, index) => {
-      console.log(`${index + 1}. ${item.title}`);
+  if (data === "skysciai") {
+    const brands = Object.keys(products);
+    const keyboard = brands.map((brand) => [{ text: brand, callback_data: `brand_${brand}` }]);
+    bot.sendMessage(chatId, "Pasirinkite brendą:", {
+      reply_markup: { inline_keyboard: keyboard },
     });
+  }
 
-    klauskSkonio(brandName, flavors);
-  });
-}
+  // pasirenkamas brendas
+  if (data.startsWith("brand_")) {
+    const brand = data.replace("brand_", "");
+    const flavors = products[brand];
 
-function klauskSkonio(brand, flavors) {
-  rl.question("\nĮveskite skonio numerį: ", (ats) => {
-    const pasirinktas = parseInt(ats) - 1;
-    if (isNaN(pasirinktas) || pasirinktas < 0 || pasirinktas >= flavors.length) {
-      console.log("❌ Neteisingas pasirinkimas. Bandykite dar kartą.");
-      klauskSkonio(brand, flavors);
-      return;
-    }
+    const keyboard = flavors.map((flavor) => [
+      { text: flavor.name, callback_data: `flavor_${brand}_${flavor.name}` },
+    ]);
 
-    const preke = flavors[pasirinktas];
-    console.log(`\n🧴 ${brand} – ${preke.title}`);
-    console.log(`Aprašymas: ${preke.description}`);
-    console.log(`Kaina: ${preke.price}`);
-    console.log("\nAčiū, kad naudojatės VapeStore katalogu! 💨");
+    bot.sendMessage(chatId, `Pasirinkite skonį iš ${brand}:`, {
+      reply_markup: { inline_keyboard: keyboard },
+    });
+  }
 
-    rl.close();
-  });
-}
+  // pasirenkamas skonis
+  if (data.startsWith("flavor_")) {
+    const [_, brand, flavorName] = data.split("_");
+    const flavor = products[brand].find((f) => f.name === flavorName);
 
-klauskBrendo();
+    bot.sendMessage(
+      chatId,
+      `🥤 *${flavor.name}*\n\n${flavor.description}\n\n💸 Kaina: *5 €*`,
+      { parse_mode: "Markdown" }
+    );
+  }
+
+  bot.answerCallbackQuery(query.id);
+});
