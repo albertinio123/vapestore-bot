@@ -14,9 +14,10 @@ app.use(express.static(join(__dirname, "public")));
 // === BOT TOKEN ===
 const TOKEN = process.env.BOT_TOKEN;
 if (!TOKEN) {
-  console.error("ERROR: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables");
+  console.error("FATAL: BOT_TOKEN nerastas! Eik į Vercel → Environment Variables");
   process.exit(1);
 }
+console.log("BOT_TOKEN rastas:", TOKEN.substring(0, 10) + "...");
 
 const PORT = process.env.PORT || 3000;
 const URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
@@ -28,7 +29,8 @@ const productsPath = join(__dirname, "products.json");
 
 function loadProducts() {
   try {
-    products = JSON.parse(fs.readFileSync(productsPath, "utf8"));
+    const data = fs.readFileSync(productsPath, "utf8");
+    products = JSON.parse(data);
     console.log("Produktai įkelti:", Object.keys(products).length, "brendai");
   } catch (err) {
     console.log("products.json nerastas – pradedam tuščiai");
@@ -37,27 +39,22 @@ function loadProducts() {
 }
 loadProducts();
 
-const bot = new TelegramBot(TOKEN);
+const bot = new TelegramBot(TOKEN, { webHook: false });
 
 // === WEBHOOK ===
 async function setupWebhook() {
   const webhookUrl = `${URL}/api/bot`;
   try {
-    const info = await bot.getWebHookInfo();
-    if (info.url !== webhookUrl) {
-      await bot.setWebHook(webhookUrl);
-      console.log("Webhook nustatytas:", webhookUrl);
-    } else {
-      console.log("Webhook jau veikia:", webhookUrl);
-    }
+    await bot.setWebHook(webhookUrl);
+    console.log("WEBHOOK NUSTATYTAS:", webhookUrl);
   } catch (err) {
-    console.error("Webhook klaida:", err.message);
+    console.error("WEBHOOK KLAIDA:", err.message);
   }
 }
 
 // === MARŠRUTAI ===
 app.post("/api/bot", (req, res) => {
-  console.log("Gautas update iš Telegram:", req.body);
+  console.log("GAUTAS UPDATE IŠ TELEGRAM:", JSON.stringify(req.body).substring(0, 200));
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
@@ -74,33 +71,27 @@ app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
-app.post("/api/products", (req, res) => {
-  const { brand, name, description, photo_url, price } = req.body;
-  if (!brand || !name || !description) return res.status(400).json({ error: "Trūksta duomenų" });
-  if (!products[brand]) products[brand] = [];
-  products[brand].push({ name, description, photo_url, price: price || 5 });
-  try { fs.writeFileSync(productsPath, JSON.stringify(products, null, 2)); } catch {}
-  res.json({ success: true });
+// === BOT KOMANDOS ===
+bot.on("message", (msg) => {
+  console.log("GAUTA ŽINUTĖ:", msg.text, "iš", msg.from.id);
 });
 
-// === BOT KOMANDOS ===
 bot.onText(/\/start/, (msg) => {
-  console.log("Gauta /start iš:", msg.from.id);
+  console.log("/start iš", msg.from.id);
   bot.sendMessage(msg.chat.id, "Sveikas atvykęs į *VapeStore*!", {
     parse_mode: "Markdown",
-    reply_markup: { inline_keyboard: [[{ text: "Skysčiai", callback_data: "list_brands" }]] }
-  });
-});
-
-bot.onText(/\/admin/, (msg) => {
-  if (msg.from.id !== ADMIN_ID) return bot.sendMessage(msg.chat.id, "Drausta.");
-  bot.sendMessage(msg.chat.id, `Admin: ${URL}/admin`);
+    reply_markup: {
+      inline_keyboard: [[{ text: "Skysčiai", callback_data: "list_brands" }]]
+    }
+  }).catch(err => console.error("NEPAVYKO IŠSIŲSTI:", err.message));
 });
 
 bot.onText(/\/cart/, (msg) => {
   const userId = msg.from.id;
   const cart = carts[userId] || { products: [], total: 0 };
-  if (cart.products.length === 0) return bot.sendMessage(userId, "Krepšelis tuščias!");
+  if (cart.products.length === 0) {
+    return bot.sendMessage(userId, "Krepšelis tuščias!");
+  }
   let text = `*Krepšelis:*\n\n`;
   cart.products.forEach(p => text += `${p.name} – ${p.price} €\n`);
   text += `\nIš viso: *${cart.total} €*`;
@@ -111,6 +102,7 @@ bot.onText(/\/cart/, (msg) => {
 });
 
 bot.on("callback_query", async (q) => {
+  console.log("CALLBACK:", q.data);
   const chatId = q.message.chat.id;
   const userId = q.from.id;
   const data = q.data;
@@ -119,7 +111,7 @@ bot.on("callback_query", async (q) => {
     const brands = Object.keys(products);
     if (brands.length === 0) return bot.sendMessage(chatId, "Nėra prekių");
     const keyboard = brands.map(b => [{ text: b, callback_data: `brand_${b}` }]);
-    bot.sendMessage(chatId, "Pasirink:", { reply_markup: { inline_keyboard: keyboard } });
+    bot.sendMessage(chatId, "Pasirink brendą:", { reply_markup: { inline_keyboard: keyboard } });
   }
 
   if (data.startsWith("brand_")) {
@@ -171,8 +163,7 @@ bot.on("callback_query", async (q) => {
   bot.answerCallbackQuery(q.id);
 });
 
-app.listen(PORT, () => {
-  console.log(`Serveris veikia: ${URL}`);
-  console.log(`Admin panelė: ${URL}/admin`);
-  setupWebhook();
+app.listen(PORT, async () => {
+  console.log(`SERVERIS VEIKIA: ${URL}`);
+  await setupWebhook();
 });
