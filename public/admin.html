@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VapeStore Admin</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, textarea, button { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #007bff; color: white; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+    .product { padding: 10px; margin: 10px 0; background: #f8f9fa; border-radius: 5px; border: 1px solid #eee; }
+    h3 { margin: 15px 0 5px; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VapeStore Admin Panelė</h1>
+    <input type="text" id="brand" placeholder="Brendas (pvz. Riot Squad)" />
+    <input type="text" id="name" placeholder="Skonio pavadinimas" />
+    <textarea id="desc" placeholder="Aprašymas" rows="3"></textarea>
+    <button onclick="addProduct()">Pridėti produktą</button>
+    <hr>
+    <div id="list">Kraunama...</div>
+  </div>
 
+  <script>
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products");
+        const products = await res.json();
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+        for (const [brand, items] of Object.entries(products)) {
+          const div = document.createElement("div");
+          div.innerHTML = `<h3>${brand}</h3>`;
+          items.forEach(item => {
+            div.innerHTML += `<div class="product"><strong>${item.name}</strong><br><small>${item.description}</small></div>`;
+          });
+          list.appendChild(div);
+        }
+      } catch {
+        list.innerHTML = "Klaida. Patikrink serverį.";
+      }
+    }
+
+    async function addProduct() {
+      const brand = document.getElementById("brand").value.trim();
+      const name = document.getElementById("name").value.trim();
+      const desc = document.getElementById("desc").value.trim();
+      if (!brand || !name || !desc) return alert("Užpildyk viską!");
+      await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand, name, description: desc })
+      });
+      document.getElementById("brand").value = "";
+      document.getElementById("name").value = "";
+      document.getElementById("desc").value = "";
+      loadProducts();
+    }
+
+    loadProducts();
+    setInterval(loadProducts, 5000);
+  </script>
+</body>
+</html>
