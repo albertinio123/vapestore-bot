@@ -3,7 +3,6 @@ import TelegramBot from "node-telegram-bot-api";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import fs from "fs";
-import Stripe from "stripe"; // Mokėjimui
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,16 +14,12 @@ app.use(express.static(join(__dirname, "public")));
 // === KONFIGŪRACIJA ===
 const TOKEN = process.env.BOT_TOKEN;
 if (!TOKEN) throw new Error("BOT_TOKEN nėra nustatytas!");
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY; // Stripe key iš env
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET; // Stripe webhook secret
-const stripe = new Stripe(STRIPE_SECRET);
-
 const PORT = process.env.PORT || 3000;
 const URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
 const ADMIN_ID = 112336357;
 const ADMIN_PANEL_URL = `${URL}/admin`;
 
-// === KREPŠELIS (per atmintį, nes Vercel be DB) ===
+// === KREPŠELIS (laikinas, per atmintį) ===
 const carts = {}; // { userId: { products: [], total: 0 } }
 
 // === PRODUKTAI ===
@@ -63,26 +58,6 @@ app.post("/api/bot", (req, res) => {
   res.sendStatus(200);
 });
 
-// Stripe mokėjimo webhook (saugus patvirtinimas)
-app.post("/api/stripe-webhook", express.raw({type: 'application/json'}), (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object;
-    // Siųsk patvirtinimą pirkėjui per botą
-    bot.sendMessage(paymentIntent.metadata.userId, `✅ Mokėjimas sėkmingas! Dėkojame už pirkimą.`);
-    // Siųsk tau užsakymą
-    bot.sendMessage(ADMIN_ID, `💰 Naujas užsakymas: ${paymentIntent.metadata.order}`);
-  }
-  res.json({received: true});
-});
-
 app.get("/", (req, res) => {
   res.send(`VapeStore botas veikia! <a href="/admin">Admin panelė</a>`);
 });
@@ -104,21 +79,6 @@ app.post("/api/products", (req, res) => {
   products[brand].push({ name, description, photo_url, price: price || 5 });
   try { fs.writeFileSync(productsPath, JSON.stringify(products, null, 2)); } catch {}
   res.json({ success: true });
-});
-
-// API: sukurti mokėjimo nuorodą
-app.post("/api/create-payment", async (req, res) => {
-  const { userId, order } = req.body; // order: JSON string
-  try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: 500, // 5 EUR * 100
-      currency: 'eur',
-      metadata: { userId, order }
-    });
-    res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 // === BOT KOMANDOS ===
@@ -146,7 +106,7 @@ bot.onText(/\/cart/, (msg) => {
   });
   text += `\n💰 Iš viso: *${cart.total} €*\n`;
   const keyboard = [
-    [{ text: "💳 Mokėti", callback_data: `pay_${cart.total}` }],
+    [{ text: "📞 Užsakyti (siųsti adminui)", callback_data: `order_${cart.total}` }],
     [{ text: "🗑 Ištrinti viską", callback_data: "clear_cart" }]
   ];
   bot.sendMessage(userId, text, {
@@ -217,23 +177,17 @@ bot.on("callback_query", async (q) => {
     bot.sendMessage(chatId, "🛒 Peržiūrėk krepšelį: /cart");
   }
 
-  if (data.startsWith("pay_")) {
+  if (data.startsWith("order_")) {
     const total = parseInt(data.split("_")[1]);
-    const order = JSON.stringify(carts[userId]?.products || []);
-    try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: total * 100, // EUR į centus
-        currency: 'eur',
-        metadata: { userId: userId.toString(), order }
-      });
-      const keyboard = [[{ text: "💳 Mokėti per Stripe", url: `https://checkout.stripe.com/pay/${paymentIntent.client_secret}` }]];
-      bot.sendMessage(chatId, `💳 Sumokėk *${total} €* per Stripe:`, {
-        parse_mode: "Markdown",
-        reply_markup: { inline_keyboard: keyboard }
-      });
-    } catch (err) {
-      bot.sendMessage(chatId, "❌ Mokėjimo klaida – susisiek su adminu.");
-    }
+    const order = carts[userId]?.products || [];
+    let orderText = `🆕 NAUJAS UŽSAKYMAS NUO ${q.from.username || userId}:\n\n`;
+    order.forEach(p => {
+      orderText += `${p.name} – ${p.price} €\n`;
+    });
+    orderText += `\n💰 Iš viso: ${total} €\n📱 Vartotojas: ${userId}`;
+    bot.sendMessage(ADMIN_ID, orderText);
+    bot.sendMessage(chatId, "✅ Užsakymas išsiųstas adminui! Atsakysime per 1 val.");
+    delete carts[userId]; // Išvalyk krepšelį
   }
 
   if (data === "clear_cart") {
