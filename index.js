@@ -7,127 +7,141 @@ dotenv.config();
 const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
-// --- Skaityti produktus iš JSON failo ---
-const productsPath = path.resolve("products.json");
-let products = [];
+// --- Įkrauname produktus iš JSON failo ---
+const filePath = path.join(process.cwd(), "products.json");
+let products = {};
+
 try {
-  const data = fs.readFileSync(productsPath, "utf8");
-  products = JSON.parse(data);
-} catch (err) {
-  console.error("❌ Nepavyko įkelti products.json:", err.message);
+  const rawData = fs.readFileSync(filePath, "utf8");
+  products = JSON.parse(rawData);
+  console.log("✅ products.json sėkmingai įkrautas.");
+} catch (error) {
+  console.error("❌ Nepavyko įkrauti products.json:", error.message);
 }
 
-// --- Funkcija siųsti žinutę ---
-async function sendMessage(chatId, text, extra = {}) {
+// --- Telegram žinutės siuntimo funkcija ---
+async function sendMessage(chatId, text, options = {}) {
   try {
-    const payload = {
-      chat_id: chatId,
-      text,
-      parse_mode: "Markdown"
-    };
-
-    if (extra.reply_markup) {
-      payload.reply_markup = extra.reply_markup;
-    }
-
     await fetch(`${API}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        ...options,
+      }),
     });
   } catch (err) {
-    console.error("❌ Nepavyko išsiųsti žinutės:", err.message);
+    console.error("❌ Klaida siunčiant žinutę:", err.message);
   }
 }
 
-// --- Funkcija rodyti pagrindinį meniu ---
+// --- Pagrindinis meniu: kategorijos (LT + EN) ---
 function getMainMenu() {
-  const buttons = products.map((cat) => [
-    { text: `${cat.name.en} / ${cat.name.lt}`, callback_data: `cat_${cat.id}` }
+  const categories = Object.keys(products);
+  const buttons = categories.map((cat) => [
+    {
+      text: cat, // jau yra EN/LT kartu, pvz. "E-Liquids / Skysčiai"
+      callback_data: `cat_${cat}`,
+    },
   ]);
 
   return {
     reply_markup: {
-      inline_keyboard: buttons
-    }
+      inline_keyboard: buttons,
+    },
   };
 }
 
-// --- Funkcija rodyti subkategorijas ---
-function getSubCategoriesMenu(catId) {
-  const category = products.find((c) => c.id === catId);
-  if (!category || !category.subcategories) return null;
+// --- Subkategorijos (tik EN) ---
+function getSubCategoriesMenu(categoryName) {
+  const category = products[categoryName];
+  if (!category) return null;
 
-  const buttons = category.subcategories.map((sub) => [
-    { text: sub.name, callback_data: `sub_${catId}_${sub.id}` }
+  const subcategories = Object.keys(category);
+  const buttons = subcategories.map((sub) => [
+    {
+      text: sub, // tik EN pavadinimai
+      callback_data: `sub_${categoryName}_${sub}`,
+    },
   ]);
 
   buttons.push([{ text: "⬅️ Back", callback_data: "back_main" }]);
 
   return {
     reply_markup: {
-      inline_keyboard: buttons
-    }
+      inline_keyboard: buttons,
+    },
   };
 }
 
-// --- Funkcija rodyti produktus ---
-function getProductsMenu(catId, subId) {
-  const category = products.find((c) => c.id === catId);
-  if (!category) return null;
-  const sub = category.subcategories.find((s) => s.id === subId);
-  if (!sub) return null;
+// --- Produktai konkrečioje subkategorijoje ---
+function getProductsMenu(categoryName, subName) {
+  const subcategory = products[categoryName]?.[subName];
+  if (!subcategory) return null;
 
-  const buttons = sub.items.map((item) => [
-    { text: `${item.name} - ${item.price}`, url: item.link }
+  const buttons = subcategory.map((item) => [
+    {
+      text: item.title || "Unnamed product",
+      url: item.image, // galima pakeisti į produktų nuorodą jei turi
+    },
   ]);
 
-  buttons.push([{ text: "⬅️ Back", callback_data: `cat_${catId}` }]);
+  buttons.push([
+    { text: "⬅️ Back", callback_data: `cat_${categoryName}` },
+  ]);
 
   return {
     reply_markup: {
-      inline_keyboard: buttons
-    }
+      inline_keyboard: buttons,
+    },
   };
 }
 
-// --- Pagrindinis API handler ---
+// --- Pagrindinis handleris (API endpoint) ---
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(200).send("Bot is running");
+    return res.status(200).send("Botas veikia ✅");
   }
 
   const body = req.body;
 
   try {
+    // --- Komanda /start ---
     if (body.message) {
       const chatId = body.message.chat.id;
       const text = body.message.text;
 
       if (text === "/start") {
-        await sendMessage(chatId, "👋 Sveiki! Pasirinkite prekių kategoriją:", getMainMenu());
+        await sendMessage(
+          chatId,
+          "👋 Sveiki atvykę į VapeStore Bot!\nPasirinkite prekių kategoriją:",
+          getMainMenu()
+        );
       }
     }
 
+    // --- Callback'ai (mygtukai) ---
     if (body.callback_query) {
       const chatId = body.callback_query.message.chat.id;
       const data = body.callback_query.data;
 
       if (data.startsWith("cat_")) {
-        const catId = data.replace("cat_", "");
-        const menu = getSubCategoriesMenu(catId);
+        const cat = data.replace("cat_", "");
+        const menu = getSubCategoriesMenu(cat);
         if (menu) {
-          await sendMessage(chatId, "📦 Choose a subcategory:", menu);
+          await sendMessage(chatId, `📦 ${cat} kategorija:`, menu);
         } else {
-          await sendMessage(chatId, "⚠️ Ši kategorija tuščia.", getMainMenu());
+          await sendMessage(chatId, "⚠️ Tuščia kategorija.", getMainMenu());
         }
       } else if (data.startsWith("sub_")) {
-        const [, catId, subId] = data.split("_");
-        const menu = getProductsMenu(catId, subId);
+        const [, cat, sub] = data.split("_");
+        const menu = getProductsMenu(cat, sub);
         if (menu) {
-          await sendMessage(chatId, "🛒 Available products:", menu);
+          await sendMessage(chatId, `🛒 ${sub} produktai:`, menu);
         } else {
-          await sendMessage(chatId, "⚠️ Ši subkategorija neturi prekių.", getMainMenu());
+          await sendMessage(chatId, "⚠️ Šioje subkategorijoje nėra produktų.", getMainMenu());
         }
       } else if (data === "back_main") {
         await sendMessage(chatId, "🔙 Grįžote į pagrindinį meniu:", getMainMenu());
