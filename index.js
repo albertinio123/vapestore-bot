@@ -39,7 +39,7 @@ const bot = new TelegramBot(TOKEN);
 
 // === WEBHOOK ===
 async function setupWebhook() {
-  const webhookUrl = `${URL}/webhook/${TOKEN}`;
+  const webhookUrl = `${URL}/api/bot`; // <--- NAUJAS KELIAS
   try {
     const info = await bot.getWebHookInfo();
     if (info.url !== webhookUrl) {
@@ -57,7 +57,6 @@ async function setupWebhook() {
 app.post("/api/bot", (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
-});
 });
 
 app.get("/", (req, res) => {
