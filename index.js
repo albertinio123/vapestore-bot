@@ -11,8 +11,12 @@ const app = express();
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
 
+// === BOT TOKEN ===
 const TOKEN = process.env.BOT_TOKEN;
-if (!TOKEN) throw new Error("BOT_TOKEN nėra nustatytas!");
+if (!TOKEN) {
+  console.error("ERROR: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables");
+  process.exit(1);
+}
 
 const PORT = process.env.PORT || 3000;
 const URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
@@ -25,8 +29,9 @@ const productsPath = join(__dirname, "products.json");
 function loadProducts() {
   try {
     products = JSON.parse(fs.readFileSync(productsPath, "utf8"));
-    console.log("Produktai įkelti:", Object.keys(products).length);
-  } catch {
+    console.log("Produktai įkelti:", Object.keys(products).length, "brendai");
+  } catch (err) {
+    console.log("products.json nerastas – pradedam tuščiai");
     products = {};
   }
 }
@@ -34,6 +39,7 @@ loadProducts();
 
 const bot = new TelegramBot(TOKEN);
 
+// === WEBHOOK ===
 async function setupWebhook() {
   const webhookUrl = `${URL}/api/bot`;
   try {
@@ -41,6 +47,8 @@ async function setupWebhook() {
     if (info.url !== webhookUrl) {
       await bot.setWebHook(webhookUrl);
       console.log("Webhook nustatytas:", webhookUrl);
+    } else {
+      console.log("Webhook jau veikia:", webhookUrl);
     }
   } catch (err) {
     console.error("Webhook klaida:", err.message);
@@ -49,6 +57,7 @@ async function setupWebhook() {
 
 // === MARŠRUTAI ===
 app.post("/api/bot", (req, res) => {
+  console.log("Gautas update iš Telegram:", req.body);
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
@@ -74,8 +83,9 @@ app.post("/api/products", (req, res) => {
   res.json({ success: true });
 });
 
-// === BOT ===
+// === BOT KOMANDOS ===
 bot.onText(/\/start/, (msg) => {
+  console.log("Gauta /start iš:", msg.from.id);
   bot.sendMessage(msg.chat.id, "Sveikas atvykęs į *VapeStore*!", {
     parse_mode: "Markdown",
     reply_markup: { inline_keyboard: [[{ text: "Skysčiai", callback_data: "list_brands" }]] }
@@ -162,6 +172,7 @@ bot.on("callback_query", async (q) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Serveris: ${URL}`);
+  console.log(`Serveris veikia: ${URL}`);
+  console.log(`Admin panelė: ${URL}/admin`);
   setupWebhook();
 });
