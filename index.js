@@ -2,8 +2,17 @@ import express from "express";
 import "dotenv/config";
 import fs from "fs";
 
-// Nuskaitome produktų duomenis iš JSON failo
+// ---- Duomenys ----
 const products = JSON.parse(fs.readFileSync("products.json", "utf-8"));
+
+// Stabilūs ID -> katalogo rakto žemėlapis (turi sutapti su products.json viršaus raktais)
+const CATEGORY_MAP = {
+  eliquids: "E-Liquids / Skysčiai",
+  pods: "Pods / Pod Sistemos",
+  mods: "Mods / Modai",
+  coils: "Coils / Kaitinimo Galvutės",
+  accessories: "Accessories / Priedai",
+};
 
 const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
@@ -11,90 +20,134 @@ const API = `https://api.telegram.org/bot${TOKEN}`;
 const app = express();
 app.use(express.json());
 
-// Pagrindinis meniu
+// ---- UI: pagrindinis meniu su STABILIAIS ID ----
 const mainMenu = {
   reply_markup: {
     inline_keyboard: [
-      [{ text: "🍓 E-Liquids", callback_data: "E-Liquids / Skysčiai" }],
-      [{ text: "📦 Pods", callback_data: "Pods / Pod Sistemos" }],
-      [{ text: "⚙️ Mods", callback_data: "Mods / Modai" }],
-      [{ text: "🔥 Coils", callback_data: "Coils / Kaitinimo Galvutės" }],
-      [{ text: "🎒 Accessories", callback_data: "Accessories / Priedai" }]
-    ]
-  }
+      [{ text: "🍓 E-Liquids / Skysčiai", callback_data: "cat:eliquids" }],
+      [{ text: "📦 Pods / Pod sistemos", callback_data: "cat:pods" }],
+      [{ text: "⚙️ Mods / Modai", callback_data: "cat:mods" }],
+      [{ text: "🔥 Coils / Kaitinimo galvutės", callback_data: "cat:coils" }],
+      [{ text: "🎒 Accessories / Priedai", callback_data: "cat:accessories" }],
+    ],
+  },
 };
 
-// Webhook maršrutas
+// ---- Webhook endpoint ----
 app.post("/api/bot", async (req, res) => {
   const msg = req.body.message;
-  const data = req.body.callback_query;
+  const cb = req.body.callback_query;
 
-  // /start komanda
+  // /start
   if (msg?.text === "/start") {
     await sendMessage(
       msg.chat.id,
-      "Sveiki! 👋\n\nPasirinkite prekių kategoriją:",
+      "Sveiki! 👋\n\nPasirinkite prekių kategoriją / Choose a product category:",
       mainMenu
     );
+    return res.sendStatus(200);
   }
 
-  // Paspaudimai ant mygtukų
-  if (data) {
-    const chatId = data.message.chat.id;
-    const category = data.data;
+  // ----- Callback mygtukai -----
+  if (cb?.data?.startsWith("cat:")) {
+    const chatId = cb.message.chat.id;
+    const catId = cb.data.split(":")[1]; // pvz. "eliquids"
+    const catKey = CATEGORY_MAP[catId];  // pvz. "E-Liquids / Skysčiai"
+    const categoryData = products[catKey];
 
-    const categoryData = products[category];
     if (!categoryData) {
       await sendMessage(chatId, "❌ Kategorija nerasta.");
       return res.sendStatus(200);
     }
 
-    // Parodome pogrupius (pvz. Fruit / Menthol)
-    const subcategories = Object.keys(categoryData);
-    const buttons = subcategories.map(sub => [{ text: sub, callback_data: `${category}|${sub}` }]);
+    const subcats = Object.keys(categoryData); // pvz. "Fruit / Vaisių", "Menthol / Mentoliniai" ...
+    const buttons = subcats.map((s) => [
+      { text: s, callback_data: `sub:${catId}:${encodeURIComponent(s)}` },
+    ]);
 
-    await sendMessage(chatId, `📦 *${category}* kategorijos:`, {
+    // pridedam atgal
+    buttons.push([{ text: "🏠 Main Menu", callback_data: "home" }]);
+
+    await sendMessage(chatId, `📦 *${catKey}*`, {
       reply_markup: { inline_keyboard: buttons },
-      parse_mode: "Markdown"
+      parse_mode: "Markdown",
     });
+    return res.sendStatus(200);
   }
 
-  // Jei paspausta subkategorija
-  if (data?.data?.includes("|")) {
-    const [category, subcategory] = data.data.split("|");
-    const chatId = data.message.chat.id;
-    const items = products[category]?.[subcategory] || [];
+  if (cb?.data?.startsWith("sub:")) {
+    const chatId = cb.message.chat.id;
+    const [, catId, encSub] = cb.data.split(":");
+    const catKey = CATEGORY_MAP[catId];
+    const subKey = decodeURIComponent(encSub);
 
+    const items = products[catKey]?.[subKey] || [];
     if (!items.length) {
-      await sendMessage(chatId, "📭 Ši kategorija neturi prekių.");
+      await sendMessage(chatId, "📭 Ši subkategorija dar tuščia.");
+      await sendMessage(chatId, "Pasirinkite kitą:", {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: `↩️ ${catKey}`, callback_data: `cat:${catId}` }],
+            [{ text: "🏠 Main Menu", callback_data: "home" }],
+          ],
+        },
+      });
       return res.sendStatus(200);
     }
 
-    // Išsiunčiame kiekvieną produktą
+    // išsiunčiam po nuotrauką kiekvienam produktui
     for (const item of items) {
-      const caption = `*${item.title}*\n${item.description}\n\n💰 Kaina: ${item.price || "nenurodyta"}`;
+      const caption = `*${item.title}*\n${item.description}${
+        item.price ? `\n\n💰 ${item.price}` : ""
+      }`;
       await sendPhoto(chatId, item.image, caption);
     }
+
+    // navigacijos mygtukai
+    await sendMessage(chatId, "⬅️ Navigacija", {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: `↩️ ${catKey}`, callback_data: `cat:${catId}` }],
+          [{ text: "🏠 Main Menu", callback_data: "home" }],
+        ],
+      },
+    });
+    return res.sendStatus(200);
   }
 
+  if (cb?.data === "home") {
+    await sendMessage(cb.message.chat.id, "🏠 Pagrindinis meniu:", mainMenu);
+    return res.sendStatus(200);
+  }
+
+  // Numatytasis atsakymas
   res.sendStatus(200);
 });
 
-// Siunčia tekstinius pranešimus
+// ---- Telegram helpers ----
 async function sendMessage(chatId, text, extra = {}) {
   await fetch(`${API}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "Markdown", ...extra })
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      ...extra,
+    }),
   });
 }
 
-// Siunčia nuotraukas
 async function sendPhoto(chatId, photo, caption = "") {
   await fetch(`${API}/sendPhoto`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, photo, caption, parse_mode: "Markdown" })
+    body: JSON.stringify({
+      chat_id: chatId,
+      photo,
+      caption,
+      parse_mode: "Markdown",
+    }),
   });
 }
 
