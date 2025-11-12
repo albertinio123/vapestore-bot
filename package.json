@@ -1,9 +1,12 @@
 {
   "name": "vapestore-bot",
   "version": "1.0.0",
-  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "express": "latest",
-    "dotenv": "latest"
+    "dotenv": "^16.0.3",
+    "node-telegram-bot-api": "^0.61.0"
   }
 }
