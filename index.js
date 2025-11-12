@@ -1,22 +1,30 @@
 import TelegramBot from "node-telegram-bot-api";
 import fs from "fs";
+import express from "express";
 
-// 🧩 Bot token iš aplinkos kintamojo (Vercel → Settings → Environment Variables)
+const app = express();
+app.use(express.json());
+
 const token = process.env.BOT_TOKEN;
+const domain = process.env.VERCEL_URL; // pvz.: "https://vapestore-bot.vercel.app"
+const ADMIN_ID = 123456789; // tavo telegram ID
 
-// ⚙️ Admin ID (įrašyk savo Telegram ID)
-const ADMIN_ID = 123456789; // <- pakeisk į savo ID
+if (!token || !domain) throw new Error("❌ BOT_TOKEN arba VERCEL_URL nėra nustatyti!");
 
-// 🚀 Paleidžiam bota
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token);
+bot.setWebHook(`${domain}/webhook/${token}`);
 
-// 📦 Užkraunam produktus
 let products = JSON.parse(fs.readFileSync("./products.json", "utf8"));
 
-// 🔹 /start komanda
+// Webhook handler — Telegram kviečia šį URL
+app.post(`/webhook/${token}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// 🔹 Start
 bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "Sveikas atvykęs į 💨 *VAPE STORE!*", {
+  bot.sendMessage(msg.chat.id, "Sveikas atvykęs į 💨 *VapeStore*!", {
     parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [[{ text: "💨 Skysčiai", callback_data: "skysciai" }]],
@@ -24,41 +32,28 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
-// 🔹 /help komanda
+// 🔹 Help
 bot.onText(/\/help/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    "📘 *Pagalba:*\n\n" +
-      "💨 /start – pradinis meniu\n" +
-      "ℹ️ /help – šis pagalbos pranešimas\n" +
-      "🔧 /admin – valdymas (tik administratoriui)",
+    "📘 Pagalba:\n/start – pradėti\n/help – pagalba\n/admin – valdymas (tik adminui)",
     { parse_mode: "Markdown" }
   );
 });
 
-// 🔹 /admin komanda – leidžia pridėti naują produktą
+// 🔹 Admin
 bot.onText(/\/admin/, (msg) => {
-  const chatId = msg.chat.id;
-  if (msg.from.id !== ADMIN_ID) {
-    return bot.sendMessage(chatId, "❌ Neturi prieigos prie administratoriaus funkcijų.");
-  }
+  if (msg.from.id !== ADMIN_ID)
+    return bot.sendMessage(msg.chat.id, "❌ Neturi prieigos prie administratoriaus meniu.");
+  bot.sendMessage(msg.chat.id, "Įvesk: `Brendas | Skonis | Aprašymas`", { parse_mode: "Markdown" });
 
-  bot.sendMessage(
-    chatId,
-    "🛠 *Admin meniu:*\nĮvesk naują produktą tokiu formatu:\n\n" +
-      "`Brendas | Skonis | Aprašymas`",
-    { parse_mode: "Markdown" }
-  );
-
-  bot.once("message", (msg) => {
-    if (!msg.text.includes("|")) return;
-    const [brand, name, description] = msg.text.split("|").map((x) => x.trim());
-
+  bot.once("message", (m) => {
+    if (!m.text.includes("|")) return;
+    const [brand, name, description] = m.text.split("|").map((x) => x.trim());
     if (!products[brand]) products[brand] = [];
     products[brand].push({ name, description });
-
     fs.writeFileSync("./products.json", JSON.stringify(products, null, 2));
-    bot.sendMessage(chatId, `✅ Produktas "${name}" pridėtas prie ${brand}`);
+    bot.sendMessage(msg.chat.id, `✅ Pridėta prie ${brand}: ${name}`);
   });
 });
 
@@ -69,7 +64,7 @@ bot.on("callback_query", (query) => {
 
   if (data === "skysciai") {
     const brands = Object.keys(products);
-    const keyboard = brands.map((brand) => [{ text: brand, callback_data: `brand_${brand}` }]);
+    const keyboard = brands.map((b) => [{ text: b, callback_data: `brand_${b}` }]);
     bot.sendMessage(chatId, "Pasirinkite brendą:", {
       reply_markup: { inline_keyboard: keyboard },
     });
@@ -87,11 +82,9 @@ bot.on("callback_query", (query) => {
   }
 
   if (data.startsWith("flavor_")) {
-    const parts = data.split("_");
-    const brand = parts[1];
-    const flavorName = parts.slice(2).join("_");
+    const [_, brand, ...flavorArr] = data.split("_");
+    const flavorName = flavorArr.join("_");
     const flavor = products[brand].find((f) => f.name === flavorName);
-
     bot.sendMessage(
       chatId,
       `🥤 *${flavor.name}*\n\n${flavor.description}\n\n💸 Kaina: *5 €*`,
@@ -101,3 +94,10 @@ bot.on("callback_query", (query) => {
 
   bot.answerCallbackQuery(query.id);
 });
+
+// ✅ Paleidimo serveris
+app.get("/", (req, res) => {
+  res.send("Bot is running ✅");
+});
+
+app.listen(3000, () => console.log("Server started"));
