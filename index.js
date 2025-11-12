@@ -19,7 +19,29 @@ try {
   console.error("❌ Nepavyko įkrauti products.json:", error.message);
 }
 
-// --- Telegram žinutės siuntimo funkcija ---
+// --- Emoji kategorijoms ---
+const categoryIcons = {
+  "E-Liquids / Skysčiai": "💧",
+  "Pods / Pod sistemos": "🔋",
+  "Mods / Modai": "⚙️",
+  "Coils / Kaitinimo galvutės": "🔩",
+  "Accessories / Priedai": "🎒"
+};
+
+// --- Emoji subkategorijoms ---
+const subIcons = {
+  Fruit: "🍓",
+  Menthol: "❄️",
+  Closed: "🔒",
+  Open: "🔓",
+  Box: "📦",
+  Mechanical: "⚡",
+  Mesh: "🧵",
+  Chargers: "🔌",
+  Tanks: "🫙"
+};
+
+// --- Siunčia paprastą žinutę ---
 async function sendMessage(chatId, text, options = {}) {
   try {
     await fetch(`${API}/sendMessage`, {
@@ -37,12 +59,31 @@ async function sendMessage(chatId, text, options = {}) {
   }
 }
 
-// --- Pagrindinis meniu: kategorijos (LT + EN) ---
+// --- Siunčia produkto nuotrauką ---
+async function sendPhoto(chatId, photoUrl, caption, options = {}) {
+  try {
+    await fetch(`${API}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: photoUrl,
+        caption,
+        parse_mode: "Markdown",
+        ...options,
+      }),
+    });
+  } catch (err) {
+    console.error("❌ Klaida siunčiant nuotrauką:", err.message);
+  }
+}
+
+// --- Pagrindinis meniu: kategorijos (LT + EN + emoji) ---
 function getMainMenu() {
   const categories = Object.keys(products);
   const buttons = categories.map((cat) => [
     {
-      text: cat, // jau yra EN/LT kartu, pvz. "E-Liquids / Skysčiai"
+      text: `${categoryIcons[cat] || "📁"} ${cat}`,
       callback_data: `cat_${cat}`,
     },
   ]);
@@ -54,7 +95,7 @@ function getMainMenu() {
   };
 }
 
-// --- Subkategorijos (tik EN) ---
+// --- Subkategorijos (tik EN + emoji) ---
 function getSubCategoriesMenu(categoryName) {
   const category = products[categoryName];
   if (!category) return null;
@@ -62,7 +103,7 @@ function getSubCategoriesMenu(categoryName) {
   const subcategories = Object.keys(category);
   const buttons = subcategories.map((sub) => [
     {
-      text: sub, // tik EN pavadinimai
+      text: `${subIcons[sub] || "📦"} ${sub}`,
       callback_data: `sub_${categoryName}_${sub}`,
     },
   ]);
@@ -81,16 +122,14 @@ function getProductsMenu(categoryName, subName) {
   const subcategory = products[categoryName]?.[subName];
   if (!subcategory) return null;
 
-  const buttons = subcategory.map((item) => [
+  const buttons = subcategory.map((item, index) => [
     {
-      text: item.title || "Unnamed product",
-      url: item.image, // galima pakeisti į produktų nuorodą jei turi
+      text: `${item.title || "Unnamed"}`,
+      callback_data: `prod_${categoryName}_${subName}_${index}`,
     },
   ]);
 
-  buttons.push([
-    { text: "⬅️ Back", callback_data: `cat_${categoryName}` },
-  ]);
+  buttons.push([{ text: "⬅️ Back", callback_data: `cat_${categoryName}` }]);
 
   return {
     reply_markup: {
@@ -108,7 +147,7 @@ export default async function handler(req, res) {
   const body = req.body;
 
   try {
-    // --- Komanda /start ---
+    // --- /start komanda ---
     if (body.message) {
       const chatId = body.message.chat.id;
       const text = body.message.text;
@@ -116,7 +155,7 @@ export default async function handler(req, res) {
       if (text === "/start") {
         await sendMessage(
           chatId,
-          "👋 Sveiki atvykę į VapeStore Bot!\nPasirinkite prekių kategoriją:",
+          "👋 Sveiki atvykę į *VapeStore Bot!*\nPasirinkite prekių kategoriją:",
           getMainMenu()
         );
       }
@@ -127,23 +166,49 @@ export default async function handler(req, res) {
       const chatId = body.callback_query.message.chat.id;
       const data = body.callback_query.data;
 
+      // --- Kategorija ---
       if (data.startsWith("cat_")) {
         const cat = data.replace("cat_", "");
         const menu = getSubCategoriesMenu(cat);
         if (menu) {
-          await sendMessage(chatId, `📦 ${cat} kategorija:`, menu);
+          await sendMessage(chatId, `📦 *${cat}*`, menu);
         } else {
           await sendMessage(chatId, "⚠️ Tuščia kategorija.", getMainMenu());
         }
-      } else if (data.startsWith("sub_")) {
+      }
+
+      // --- Subkategorija ---
+      else if (data.startsWith("sub_")) {
         const [, cat, sub] = data.split("_");
         const menu = getProductsMenu(cat, sub);
         if (menu) {
-          await sendMessage(chatId, `🛒 ${sub} produktai:`, menu);
+          await sendMessage(chatId, `🛒 *${sub}* produktai:`, menu);
         } else {
           await sendMessage(chatId, "⚠️ Šioje subkategorijoje nėra produktų.", getMainMenu());
         }
-      } else if (data === "back_main") {
+      }
+
+      // --- Produktas ---
+      else if (data.startsWith("prod_")) {
+        const [, cat, sub, index] = data.split("_");
+        const product = products[cat]?.[sub]?.[index];
+        if (product) {
+          const caption = `*${product.title}*\n\n${product.description}\n\n💰 Kaina: ${product.price || "nenurodyta"}`;
+          await sendPhoto(chatId, product.image, caption, {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: "🛒 Pirkti dabar", url: "https://tavo-svetaine.lt" }
+                ],
+                [{ text: "⬅️ Grįžti", callback_data: `sub_${cat}_${sub}` }]
+              ],
+            },
+          });
+        }
+      }
+
+      // --- Grįžimas į pagrindinį meniu ---
+      else if (data === "back_main") {
         await sendMessage(chatId, "🔙 Grįžote į pagrindinį meniu:", getMainMenu());
       }
     }
