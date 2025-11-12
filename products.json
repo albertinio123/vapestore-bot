@@ -1,126 +1,152 @@
-{
-  "E-Liquids / Skysčiai": {
-    "Fruit": [
-      {
-        "title": "Elf Bar 600 Strawberry Ice",
-        "description": "Gaivus braškių skonis su ledo atspalviu / Refreshing strawberry flavor with ice touch",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0154319_elf-bar-600-strawberry-ice.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Lost Mary BM600 Blueberry",
-        "description": "Saldžios mėlynės ir švelnus garas / Sweet blueberry and smooth vapor",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0188312_lost-mary-bm600-blueberry.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Elfliq Mango 10ml",
-        "description": "Mango skonio e-skystis / Mango flavored e-liquid",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0201811_elfliq-mango.jpeg",
-        "price": ""
-      }
-    ],
-    "Menthol": [
-      {
-        "title": "Vampire Vape Heisenberg",
-        "description": "Mentolio ir mėlynių derinys / Menthol and berry blend",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0177321_vampire-vape-heisenberg.jpeg",
-        "price": ""
-      },
-      {
-        "title": "IVG Menthol Mojito",
-        "description": "Citrusinė gaiva ir mėtų skonis / Citrus mint blend",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0159517_ivg-menthol-mojito.jpeg",
-        "price": ""
-      }
-    ]
+[
+  {
+    "brand": "Pod Salt Core",
+    "name": "Peach Ice",
+    "category": "E-liquids",
+    "subcategory": "Core",
+    "price": 5,
+    "stock": 20,
+    "image": "https://images.vapestore.co.uk/peach-ice-pod-salt.jpg",
+    "description": "Deliciously sweet peach flavour blended with an icy menthol finish."
   },
-  "Pods / Pod sistemos": {
-    "Closed": [
-      {
-        "title": "Elf Bar Elfa Pod Kit",
-        "description": "Lengva naudoti pod sistema / Easy-to-use pod system",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0199108_elf-bar-elfa-pod-kit.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Vuse ePod 2",
-        "description": "Klasikinė uždara pod sistema / Classic closed pod system",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0179139_vuse-epod2.jpeg",
-        "price": ""
-      }
-    ],
-    "Open": [
-      {
-        "title": "Vaporesso XROS 3",
-        "description": "Populiari atviro tipo pod sistema / Popular open-type pod system",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0188612_vaporesso-xros3.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Uwell Caliburn G3",
-        "description": "Kokybiška pod sistema su stipriu garu / Quality pod with strong vapor",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0187421_uwell-caliburn-g3.jpeg",
-        "price": ""
-      }
-    ]
+  {
+    "brand": "Pod Salt Core",
+    "name": "Vanilla",
+    "category": "E-liquids",
+    "subcategory": "Core",
+    "price": 5,
+    "stock": 20,
+    "image": "https://images.vapestore.co.uk/vanilla-pod-salt.jpg",
+    "description": "Smooth and creamy vanilla flavour delivering a rich and satisfying vape."
   },
-  "Mods / Modai": {
-    "Box": [
-      {
-        "title": "GeekVape Aegis Solo 2",
-        "description": "Tvirtas ir galingas modas / Durable and powerful mod",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0156211_geekvape-aegis-solo-2.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Vaporesso Gen 200",
-        "description": "Lengvas ir universalus modas / Lightweight and versatile mod",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0168911_vaporesso-gen-200.jpeg",
-        "price": ""
-      }
-    ],
-    "Mechanical": [
-      {
-        "title": "Vaperz Cloud Hammer of God",
-        "description": "Mechaninis modas pažengusiems / Mechanical mod for advanced users",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0176211_vaperz-cloud-hog.jpeg",
-        "price": ""
-      }
-    ]
+  {
+    "brand": "Pod Salt Core",
+    "name": "Mixed Berries Ice",
+    "category": "E-liquids",
+    "subcategory": "Core",
+    "price": 5,
+    "stock": 16,
+    "image": "https://images.vapestore.co.uk/mixed-berries-ice-pod-salt.jpg",
+    "description": "A burst of sweet and tart mixed berries with a cool icy edge."
   },
-  "Coils / Kaitinimo galvutės": {
-    "Mesh": [
-      {
-        "title": "Vaporesso GTX 0.2Ω",
-        "description": "Aukštos kokybės tinklelio coil / High-performance mesh coil",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0162811_vaporesso-gtx-coils.jpeg",
-        "price": ""
-      },
-      {
-        "title": "Uwell Caliburn G Coils 1.0Ω",
-        "description": "Puikiai tinka MTL garinimui / Ideal for MTL vaping",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0171111_uwell-caliburn-g-coils.jpeg",
-        "price": ""
-      }
-    ]
+  {
+    "brand": "Pod Salt Core",
+    "name": "Mango Ice",
+    "category": "E-liquids",
+    "subcategory": "Core",
+    "price": 5,
+    "stock": 20,
+    "image": "https://images.vapestore.co.uk/mango-ice-pod-salt.jpg",
+    "description": "Tropical mango flavour perfectly balanced with a refreshing ice exhale."
   },
-  "Accessories / Priedai": {
-    "Chargers": [
-      {
-        "title": "Nitecore i2 Charger",
-        "description": "Universalus akumuliatorių kroviklis / Universal battery charger",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0155111_nitecore-i2.jpeg",
-        "price": ""
-      }
-    ],
-    "Tanks": [
-      {
-        "title": "Aspire Nautilus 3 Tank",
-        "description": "Populiarus 24mm bakelis / Popular 24mm tank",
-        "image": "https://cdn.vawoo.com/files/images/thumbs/0169111_aspire-nautilus-3.jpeg",
-        "price": ""
-      }
-    ]
+  {
+    "brand": "Pod Salt Core",
+    "name": "Blue Ice",
+    "category": "E-liquids",
+    "subcategory": "Core",
+    "price": 5,
+    "stock": 8,
+    "image": "https://images.vapestore.co.uk/blue-ice-pod-salt.jpg",
+    "description": "Cool blueberry and menthol combination for a crisp and refreshing vape."
+  },
+  {
+    "brand": "Pod Salt Nexus",
+    "name": "Pineapple Passion Lime",
+    "category": "E-liquids",
+    "subcategory": "Nexus",
+    "price": 5,
+    "stock": 10,
+    "image": "https://images.vapestore.co.uk/pineapple-passion-lime-pod-salt.jpg",
+    "description": "Exotic blend of pineapple, passion fruit and lime for a vibrant tropical taste."
+  },
+  {
+    "brand": "Pod Salt Nexus",
+    "name": "Mango Strawberry Peach",
+    "category": "E-liquids",
+    "subcategory": "Nexus",
+    "price": 5,
+    "stock": 10,
+    "image": "https://images.vapestore.co.uk/mango-strawberry-peach-pod-salt.jpg",
+    "description": "A perfect fusion of mango, strawberry and peach creating a juicy flavour burst."
+  },
+  {
+    "brand": "IVG Bar Favourites",
+    "name": "Blackcurrant Mango",
+    "category": "E-liquids",
+    "subcategory": "IVG Bar",
+    "price": 5,
+    "stock": 10,
+    "image": "https://images.vapestore.co.uk/blackcurrant-mango-ivg.jpg",
+    "description": "Sweet mango blended with tart blackcurrant for a rich, fruity vape."
+  },
+  {
+    "brand": "Crystal Clear Bar Salt",
+    "name": "Xtreme Sour Apple",
+    "category": "E-liquids",
+    "subcategory": "Crystal Clear",
+    "price": 5,
+    "stock": 14,
+    "image": "https://images.vapestore.co.uk/sour-apple-crystal.jpg",
+    "description": "Crisp sour apple flavour with an extra tangy bite for true fruit lovers."
+  },
+  {
+    "brand": "SKE Crystal Original",
+    "name": "Banana Ice",
+    "category": "E-liquids",
+    "subcategory": "SKE Crystal",
+    "price": 5,
+    "stock": 8,
+    "image": "https://images.vapestore.co.uk/banana-ice-ske.jpg",
+    "description": "Smooth banana flavour with an icy chill for a refreshing all-day vape."
+  },
+  {
+    "brand": "SKE Crystal Original",
+    "name": "Juicy Peach",
+    "category": "E-liquids",
+    "subcategory": "SKE Crystal",
+    "price": 5,
+    "stock": 25,
+    "image": "https://images.vapestore.co.uk/juicy-peach-ske.jpg",
+    "description": "Ripe and juicy peach flavour offering natural sweetness and smooth finish."
+  },
+  {
+    "brand": "IVG Intense",
+    "name": "Pineapple Ice",
+    "category": "E-liquids",
+    "subcategory": "IVG Intense",
+    "price": 5,
+    "stock": 17,
+    "image": "https://images.vapestore.co.uk/pineapple-ice-ivg.jpg",
+    "description": "Intensely refreshing pineapple with a cooling ice sensation."
+  },
+  {
+    "brand": "Just Juice Bar",
+    "name": "Watermelon",
+    "category": "E-liquids",
+    "subcategory": "Just Juice",
+    "price": 5,
+    "stock": 20,
+    "image": "https://images.vapestore.co.uk/watermelon-just-juice.jpg",
+    "description": "Classic sweet watermelon flavour with juicy freshness in every puff."
+  },
+  {
+    "brand": "Just Juice Bar Below Zero",
+    "name": "Frozen Berry Gummy",
+    "category": "E-liquids",
+    "subcategory": "Just Juice Below Zero",
+    "price": 5,
+    "stock": 30,
+    "image": "https://images.vapestore.co.uk/frozen-berry-gummy-just-juice.jpg",
+    "description": "Chilled berry gummy mix delivering sweet, icy and nostalgic candy flavour."
+  },
+  {
+    "brand": "Just Juice Bar Below Zero",
+    "name": "Triple Mango",
+    "category": "E-liquids",
+    "subcategory": "Just Juice Below Zero",
+    "price": 5,
+    "stock": 20,
+    "image": "https://images.vapestore.co.uk/triple-mango-just-juice.jpg",
+    "description": "An explosion of triple mango tones with a smooth, icy finish."
   }
-}
+]
