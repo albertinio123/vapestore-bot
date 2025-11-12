@@ -2,17 +2,18 @@ import express from "express";
 import "dotenv/config";
 import fs from "fs";
 
-// ---- Duomenys ----
-const products = JSON.parse(fs.readFileSync("products.json", "utf-8"));
+// Jei fetch nėra (kai kurios Node versijos), pridedam node-fetch
+if (typeof fetch === "undefined") {
+  global.fetch = (await import("node-fetch")).default;
+}
 
-// Stabilūs ID -> katalogo rakto žemėlapis (turi sutapti su products.json viršaus raktais)
-const CATEGORY_MAP = {
-  eliquids: "E-Liquids / Skysčiai",
-  pods: "Pods / Pod Sistemos",
-  mods: "Mods / Modai",
-  coils: "Coils / Kaitinimo Galvutės",
-  accessories: "Accessories / Priedai",
-};
+// Nuskaitom produktų JSON
+let products = {};
+try {
+  products = JSON.parse(fs.readFileSync("products.json", "utf-8"));
+} catch (err) {
+  console.error("❌ Nepavyko nuskaityti products.json:", err.message);
+}
 
 const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
@@ -20,132 +21,120 @@ const API = `https://api.telegram.org/bot${TOKEN}`;
 const app = express();
 app.use(express.json());
 
-// ---- UI: pagrindinis meniu su STABILIAIS ID ----
+// Pagrindinis meniu
 const mainMenu = {
   reply_markup: {
     inline_keyboard: [
-      [{ text: "🍓 E-Liquids / Skysčiai", callback_data: "cat:eliquids" }],
-      [{ text: "📦 Pods / Pod sistemos", callback_data: "cat:pods" }],
-      [{ text: "⚙️ Mods / Modai", callback_data: "cat:mods" }],
-      [{ text: "🔥 Coils / Kaitinimo galvutės", callback_data: "cat:coils" }],
-      [{ text: "🎒 Accessories / Priedai", callback_data: "cat:accessories" }],
-    ],
-  },
+      [{ text: "🍓 E-Liquids", callback_data: "E-Liquids / Skysčiai" }],
+      [{ text: "📦 Pods", callback_data: "Pods / Pod Sistemos" }],
+      [{ text: "⚙️ Mods", callback_data: "Mods / Modai" }],
+      [{ text: "🔥 Coils", callback_data: "Coils / Kaitinimo Galvutės" }],
+      [{ text: "🎒 Accessories", callback_data: "Accessories / Priedai" }]
+    ]
+  }
 };
 
-// ---- Webhook endpoint ----
+// Webhook endpoint
 app.post("/api/bot", async (req, res) => {
-  const msg = req.body.message;
-  const cb = req.body.callback_query;
+  try {
+    const msg = req.body.message;
+    const data = req.body.callback_query;
 
-  // /start
-  if (msg?.text === "/start") {
-    await sendMessage(
-      msg.chat.id,
-      "Sveiki! 👋\n\nPasirinkite prekių kategoriją / Choose a product category:",
-      mainMenu
-    );
-    return res.sendStatus(200);
-  }
-
-  // ----- Callback mygtukai -----
-  if (cb?.data?.startsWith("cat:")) {
-    const chatId = cb.message.chat.id;
-    const catId = cb.data.split(":")[1]; // pvz. "eliquids"
-    const catKey = CATEGORY_MAP[catId];  // pvz. "E-Liquids / Skysčiai"
-    const categoryData = products[catKey];
-
-    if (!categoryData) {
-      await sendMessage(chatId, "❌ Kategorija nerasta.");
-      return res.sendStatus(200);
+    // Start komanda
+    if (msg?.text === "/start") {
+      await sendMessage(
+        msg.chat.id,
+        "Sveiki! 👋\n\nPasirinkite prekių kategoriją:",
+        mainMenu
+      );
     }
 
-    const subcats = Object.keys(categoryData);
-    const buttons = subcats.map((s) => [
-      { text: s, callback_data: `sub:${catId}:${encodeURIComponent(s)}` },
-    ]);
+    // Kategorijos pasirinkimas
+    if (data && !data.data.includes("|")) {
+      const chatId = data.message.chat.id;
+      const category = data.data;
+      const categoryData = products[category];
 
-    buttons.push([{ text: "🏠 Main Menu", callback_data: "home" }]);
+      if (!categoryData) {
+        await sendMessage(chatId, "❌ Kategorija nerasta.");
+        return res.sendStatus(200);
+      }
 
-    await sendMessage(chatId, `📦 *${catKey}*`, {
-      reply_markup: { inline_keyboard: buttons },
-      parse_mode: "Markdown",
-    });
-    return res.sendStatus(200);
-  }
+      const subcategories = Object.keys(categoryData);
+      const buttons = subcategories.map((s) => [
+        { text: s, callback_data: `${category}|${s}` }
+      ]);
 
-  if (cb?.data?.startsWith("sub:")) {
-    const chatId = cb.message.chat.id;
-    const [, catId, encSub] = cb.data.split(":");
-    const catKey = CATEGORY_MAP[catId];
-    const subKey = decodeURIComponent(encSub);
-
-    const items = products[catKey]?.[subKey] || [];
-    if (!items.length) {
-      await sendMessage(chatId, "📭 Ši subkategorija dar tuščia.");
-      await sendMessage(chatId, "Pasirinkite kitą:", {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: `↩️ ${catKey}`, callback_data: `cat:${catId}` }],
-            [{ text: "🏠 Main Menu", callback_data: "home" }],
-          ],
-        },
+      await sendMessage(chatId, `📦 *${category}* kategorijos:`, {
+        reply_markup: { inline_keyboard: buttons },
+        parse_mode: "Markdown"
       });
-      return res.sendStatus(200);
     }
 
-    for (const item of items) {
-      const caption = `*${item.title}*\n${item.description}${
-        item.price ? `\n\n💰 ${item.price}` : ""
-      }`;
-      await sendPhoto(chatId, item.image, caption);
+    // Subkategorijos pasirinkimas
+    if (data?.data?.includes("|")) {
+      const [category, subcategory] = data.data.split("|");
+      const chatId = data.message.chat.id;
+      const items = products[category]?.[subcategory] || [];
+
+      if (!items.length) {
+        await sendMessage(chatId, "📭 Ši kategorija neturi prekių.");
+        return res.sendStatus(200);
+      }
+
+      for (const item of items) {
+        const caption = `*${item.title}*\n${item.description}\n\n💰 Kaina: ${
+          item.price || "nenurodyta"
+        }`;
+        await sendPhoto(chatId, item.image, caption);
+      }
     }
 
-    await sendMessage(chatId, "⬅️ Navigacija", {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: `↩️ ${catKey}`, callback_data: `cat:${catId}` }],
-          [{ text: "🏠 Main Menu", callback_data: "home" }],
-        ],
-      },
-    });
-    return res.sendStatus(200);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("❌ Klaida apdorojant užklausą:", err.message);
+    res.sendStatus(500);
   }
-
-  if (cb?.data === "home") {
-    await sendMessage(cb.message.chat.id, "🏠 Pagrindinis meniu:", mainMenu);
-    return res.sendStatus(200);
-  }
-
-  res.sendStatus(200);
 });
 
-// ---- Telegram helpers ----
+// Siunčia tekstą
 async function sendMessage(chatId, text, extra = {}) {
-  await fetch(`${API}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      parse_mode: "Markdown",
-      ...extra,
-    }),
-  });
+  try {
+    await fetch(`${API}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        ...extra
+      })
+    });
+  } catch (err) {
+    console.error("❌ Nepavyko išsiųsti žinutės:", err.message);
+  }
 }
 
+// Siunčia nuotraukas
 async function sendPhoto(chatId, photo, caption = "") {
-  await fetch(`${API}/sendPhoto`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      photo,
-      caption,
-      parse_mode: "Markdown",
-    }),
-  });
+  try {
+    await fetch(`${API}/sendPhoto`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo,
+        caption,
+        parse_mode: "Markdown"
+      })
+    });
+  } catch (err) {
+    console.error("❌ Nepavyko išsiųsti nuotraukos:", err.message);
+  }
 }
 
-// ---- Svarbiausia vieta! ----
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`✅ Botas veikia ant ${PORT} porto`));
+
+// Reikalinga Vercel
 export default app;
