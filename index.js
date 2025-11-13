@@ -22,10 +22,15 @@ if (!TOKEN) {
 }
 console.log("BOT_TOKEN rastas:", TOKEN.substring(0, 10) + "...");
 
+// PORT + PAGRINDINIS DOMENAS
 const PORT = process.env.PORT || 3000;
-const URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : `http://localhost:${PORT}`;
+
+// PRODUKCIJOJE VISADA NAUDOJAM PAGRINDINĮ DOMENĄ, NE SLUGĄ
+const URL =
+  process.env.NODE_ENV === "production"
+    ? "https://vapestore-bot.vercel.app"
+    : `http://localhost:${PORT}`;
+
 const ADMIN_ID = 112336357;
 
 // === EMOJI BRANDAMS ===
@@ -68,7 +73,7 @@ async function setupWebhook() {
     await bot.setWebHook(webhookUrl);
     console.log("WEBHOOK NUSTATYTAS:", webhookUrl);
   } catch (err) {
-    console.error("WEBHOOK KLAIDA:", err.message);
+    console.error("WEBHOOK KLAIDA: FATAL:", err.message);
   }
 }
 
@@ -82,11 +87,12 @@ app.post("/api/bot", (req, res) => {
       JSON.stringify(req.body).substring(0, 200)
     );
     bot.processUpdate(req.body);
-    // Telegrami svarbu gauti 200 – neduodam jokių 401
+    // Telegramui svarbu gauti 200 – negrąžinam jokių 401
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("KLAIDA APDOROJANT UPDATE:", err);
-    // Net jei įvyko klaida, Telegram vis tiek grąžinam 200
+    // Net jei įvyko klaida, Telegram vis tiek grąžinam 200,
+    // kad nevarytų "Wrong response 401"
     return res.status(200).json({ ok: true });
   }
 });
