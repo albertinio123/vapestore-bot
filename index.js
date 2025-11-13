@@ -18,8 +18,6 @@ if (!TOKEN) {
   console.error(
     "FATAL: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables"
   );
-  // ant Vercel geriau nemirti su process.exit (gautum 500),
-  // bet tiesiog neleisim botui veikti
 }
 
 console.log("BOT_TOKEN rastas:", TOKEN ? TOKEN.substring(0, 10) + "..." : "NĖRA!");
@@ -56,7 +54,7 @@ function loadProducts() {
 }
 loadProducts();
 
-// === TELEGRAM BOTAS (be listen, be automatinio webhook setinimo) ===
+// === TELEGRAM BOTAS (webhook režimu) ===
 const bot = TOKEN ? new TelegramBot(TOKEN, { webHook: true }) : null;
 
 // === API MARŠRUTAI (VERCEL) ===
@@ -77,16 +75,16 @@ app.post("/api/bot", (req, res) => {
     console.error("KLAIDA APDOROJANT UPDATE:", err);
   }
 
-  // Visada grąžinam 200, kad Telegram NEBEMATYTŲ 401
+  // Visada 200, kad Telegram nematytų 401
   return res.status(200).json({ ok: true });
 });
 
-// Sveikatos / testinis endpointas – kad GET /api/bot neduotų 401
+// Testinis endpointas – kad GET /api/bot neduotų 401
 app.get("/api/bot", (req, res) => {
   res.status(200).send("OK");
 });
 
-// Pagrindinis puslapis – čia tik paprastas tekstas
+// Pagrindinis puslapis
 app.get("/", (req, res) => {
   res
     .status(200)
@@ -130,6 +128,35 @@ app.post("/api/products", (req, res) => {
   res.json({ success: true });
 });
 
+// ==========================================================
+//  TELEGRAMO DALIS
+// ==========================================================
+
+function sendMainMenu(chatId) {
+  const text = [
+    "👋 Sveikas atvykęs į *VapeStore LT* 🛒",
+    "",
+    "Čia gali patogiai peržiūrėti populiariausius *vape e-skysčius*.",
+    "",
+    "Pasirink, nuo ko norėtum pradėti:",
+  ].join("\n");
+
+  return bot.sendMessage(chatId, text, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: "🧃 E-skysčiai (brendai)",
+            callback_data: "category_liquids",
+          },
+        ],
+        [{ text: "🛒 Mano krepšelis", callback_data: "open_cart" }],
+      ],
+    },
+  });
+}
+
 // === BENDRAS LOG'as VISOMS ŽINUTĖMS ===
 if (bot) {
   bot.on("message", (msg) => {
@@ -139,33 +166,9 @@ if (bot) {
   // === /START – PAGRINDINIS MENIU ===
   bot.onText(/\/start/, (msg) => {
     console.log("/start iš", msg.from.id);
-
-    const text = [
-      "👋 Sveikas atvykęs į *VapeStore LT* 🛒",
-      "",
-      "Čia gali patogiai peržiūrėti populiariausius *vape e-skysčius*.",
-      "",
-      "Pasirink, nuo ko norėtum pradėti:",
-    ].join("\n");
-
-    bot
-      .sendMessage(msg.chat.id, text, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "🧃 E-skysčiai (brendai)",
-                callback_data: "category_liquids",
-              },
-            ],
-            [{ text: "🛒 Mano krepšelis", callback_data: "open_cart" }],
-          ],
-        },
-      })
-      .catch((err) =>
-        console.error("NEPAVYKO IŠSIŲSTI /start ŽINUTĖS:", err.message)
-      );
+    sendMainMenu(msg.chat.id).catch((err) =>
+      console.error("NEPAVYKO IŠSIŲSTI /start ŽINUTĖS:", err.message)
+    );
   });
 
   // === /ADMIN – NUORODA Į ADMIN PANELĘ ===
@@ -214,7 +217,14 @@ if (bot) {
     const data = q.data;
 
     try {
-      // 🛒 KREPŠELIS IŠ /START
+      // 🏠 GRĮŽTI Į PAGRINDINĮ MENIU
+      if (data === "go_home") {
+        await sendMainMenu(chatId);
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
+      // 🛒 KREPŠELIS IŠ /START ARBA MYGTUKO
       if (data === "open_cart") {
         const cart = carts[userId] || { products: [], total: 0 };
 
@@ -235,6 +245,12 @@ if (bot) {
                   {
                     text: "✅ Patvirtinti užsakymą",
                     callback_data: `order_${cart.total}`,
+                  },
+                ],
+                [
+                  {
+                    text: "⬅️ Atgal į e-skysčius",
+                    callback_data: "category_liquids",
                   },
                 ],
               ],
@@ -261,6 +277,12 @@ if (bot) {
               },
             ];
           });
+
+          // apačioje mygtukai: pagrindinis + krepšelis
+          keyboard.push([
+            { text: "⬅️ Į pagrindinį", callback_data: "go_home" },
+            { text: "🛒 Mano krepšelis", callback_data: "open_cart" },
+          ]);
 
           await bot.sendMessage(chatId, "🧃 Pasirink e-skysčių brendą:", {
             reply_markup: { inline_keyboard: keyboard },
@@ -290,11 +312,19 @@ if (bot) {
             },
           ]);
 
+          // apačioje: atgal į brendus + krepšelis
+          keyboard.push([
+            {
+              text: "⬅️ Atgal į brendus",
+              callback_data: "category_liquids",
+            },
+            { text: "🛒 Mano krepšelis", callback_data: "open_cart" },
+          ]);
+
           await bot.sendMessage(
             chatId,
-            `*${brand}* skoniai:\n\nPasirink norimą skonį, kad pamatytum aprašymą ir kainą 👇`,
+            `${brand} skoniai:\n\nPasirink norimą skonį, kad pamatytum aprašymą ir kainą 👇`,
             {
-              parse_mode: "Markdown",
               reply_markup: { inline_keyboard: keyboard },
             }
           );
@@ -304,7 +334,7 @@ if (bot) {
         return;
       }
 
-      // VIENO SKONIO INFORMACIJA + FOTO
+      // VIENO SKONIO INFORMACIJA + FOTO/TEKSTAS
       if (data.startsWith("flavor_")) {
         const parts = data.split("_").slice(1);
         const brand = parts[0];
@@ -316,60 +346,48 @@ if (bot) {
           return;
         }
 
-        // jei nėra nuotraukos – iškart tekstas
+        const inline_keyboard = [
+          [
+            {
+              text: "➕ Į krepšelį",
+              callback_data: `add_${brand}_${name}`,
+            },
+          ],
+          [
+            {
+              text: "⬅️ Atgal į skonius",
+              callback_data: `brand_${brand}`,
+            },
+            { text: "🛒 Mano krepšelis", callback_data: "open_cart" },
+          ],
+        ];
+
         if (!item.photo_url) {
+          // tik tekstas
           await bot.sendMessage(
             chatId,
             `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
             {
               parse_mode: "Markdown",
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    {
-                      text: "➕ Į krepšelį",
-                      callback_data: `add_${brand}_${name}`,
-                    },
-                  ],
-                ],
-              },
+              reply_markup: { inline_keyboard },
             }
           );
         } else {
-          // bandome siųsti FOTO be Markdown (kad nelūžtų nuo simbolių)
+          // bandome siųsti FOTO
           try {
             await bot.sendPhoto(chatId, item.photo_url, {
               caption: `${item.name}\n\n${item.description}\n\nKaina: ${item.price} €`,
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    {
-                      text: "➕ Į krepšelį",
-                      callback_data: `add_${brand}_${name}`,
-                    },
-                  ],
-                ],
-              },
+              reply_markup: { inline_keyboard },
             });
           } catch (err) {
             console.error("SENDPHOTO KLAIDA:", err.message);
-
-            // jei foto nesigavo – fallback į tekstą su Markdown
+            // jei foto nesigavo – fallback į tekstą
             await bot.sendMessage(
               chatId,
               `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
               {
                 parse_mode: "Markdown",
-                reply_markup: {
-                  inline_keyboard: [
-                    [
-                      {
-                        text: "➕ Į krepšelį",
-                        callback_data: `add_${brand}_${name}`,
-                      },
-                    ],
-                  ],
-                },
+                reply_markup: { inline_keyboard },
               }
             );
           }
@@ -428,7 +446,7 @@ if (bot) {
         return;
       }
 
-      // jei neatpažintas callback
+      // jeigu neatpažintas callback
       await bot.answerCallbackQuery(q.id);
     } catch (err) {
       console.error("CALLBACK KLAIDA:", err);
@@ -439,6 +457,5 @@ if (bot) {
   });
 }
 
-// === SVARBU: JOKIO app.listen ČIA NĖRA ===
-// Vercel @vercel/node pats pasiima exported Express app
+// Vercel pasiima Express app
 export default app;
