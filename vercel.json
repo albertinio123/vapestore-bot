@@ -8,15 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/api/bot",
-      "dest": "/index.js"
-    },
-    {
-      "src": "/admin",
-      "dest": "/index.js"
-    },
-    {
-      "src": "/api/products",
+      "src": "/api/(.*)",
       "dest": "/index.js"
     },
     {
