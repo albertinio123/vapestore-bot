@@ -12,17 +12,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 
-// === BOT TOKEN ===
+// === KONFIGAS ===
 const TOKEN = process.env.BOT_TOKEN;
 if (!TOKEN) {
   console.error(
     "FATAL: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables"
   );
 }
-
-console.log("BOT_TOKEN rastas:", TOKEN ? TOKEN.substring(0, 10) + "..." : "NĖRA!");
+console.log("BOT_TOKEN:", TOKEN ? TOKEN.substring(0, 10) + "..." : "NĖRA!");
 
 const ADMIN_ID = 112336357;
+
+// Domenas (jei kada keisi domeną, pakeisi čia vieną eilutę)
+const BASE_URL = "https://vapestore-bot.vercel.app";
+
+// Placeholder paveiksliukas, jei produktas neturi savo photo_url
+const DEFAULT_PHOTO_URL =
+  "https://via.placeholder.com/600x600.png?text=Vape+Product";
 
 // === EMOJI BRANDAMS ===
 const BRAND_EMOJIS = {
@@ -179,7 +185,7 @@ if (bot) {
     if (msg.from.id !== ADMIN_ID) {
       return bot.sendMessage(msg.chat.id, "Drausta.");
     }
-    bot.sendMessage(msg.chat.id, `Admin: https://vapestore-bot.vercel.app/admin`);
+    bot.sendMessage(msg.chat.id, `Admin: ${BASE_URL}/admin`);
   });
 
   // /cart – krepšelis per komandą
@@ -364,8 +370,24 @@ if (bot) {
           ],
         ];
 
-        // jei nėra nuotraukos – tik tekstas
-        if (!item.photo_url) {
+        // pasirinktam produktui – nuotrauka
+        let photoUrl = item.photo_url || DEFAULT_PHOTO_URL;
+        if (!photoUrl.startsWith("http")) {
+          // jei tik failo kelias – imam iš savo Vercel
+          photoUrl = `${BASE_URL}/${photoUrl.replace(/^\/+/, "")}`;
+        }
+
+        console.log("SIUNČIAM FOTO URL:", photoUrl);
+
+        try {
+          await bot.sendPhoto(chatId, photoUrl, {
+            caption: `${item.name}\n\n${item.description}\n\nKaina: ${item.price} €`,
+            reply_markup: { inline_keyboard },
+          });
+        } catch (err) {
+          console.error("SENDPHOTO KLAIDA:", err.message);
+
+          // jei foto nesigavo – fallback į tekstą
           await bot.sendMessage(
             chatId,
             `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
@@ -374,38 +396,6 @@ if (bot) {
               reply_markup: { inline_keyboard },
             }
           );
-        } else {
-          // paruošiam pilną URL:
-          // - jei prasideda "http", paliekam kaip yra
-          // - jei tik failo pavadinimas, pridedam domeną
-          let photoUrl = item.photo_url;
-          if (!photoUrl.startsWith("http")) {
-            photoUrl = `https://vapestore-bot.vercel.app/${photoUrl.replace(
-              /^\/+/,
-              ""
-            )}`;
-          }
-
-          console.log("SIUNČIAM FOTO URL:", photoUrl);
-
-          try {
-            await bot.sendPhoto(chatId, photoUrl, {
-              caption: `${item.name}\n\n${item.description}\n\nKaina: ${item.price} €`,
-              reply_markup: { inline_keyboard },
-            });
-          } catch (err) {
-            console.error("SENDPHOTO KLAIDA:", err.message);
-
-            // jei foto nesigavo – fallback į tekstą
-            await bot.sendMessage(
-              chatId,
-              `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
-              {
-                parse_mode: "Markdown",
-                reply_markup: { inline_keyboard },
-              }
-            );
-          }
         }
 
         await bot.answerCallbackQuery(q.id);
