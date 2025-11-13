@@ -43,8 +43,88 @@ const BRAND_EMOJIS = {
   "Nasty Juice": "😈",
 };
 
-const carts = {};
-const ordersByUser = {};
+// Skonių kategorijų žodžiai (ieškoma pavadinime + aprašyme, lower-case)
+const FLAVOR_CATEGORIES = {
+  fruits: {
+    title: "🍓 Vaisiai & uogos",
+    keywords: [
+      "strawberry",
+      "brašk",
+      "berry",
+      "uog",
+      "mango",
+      "apple",
+      "apelsin",
+      "orange",
+      "pear",
+      "kriauš",
+      "kiwi",
+      "grape",
+      "vynuog",
+      "fruit",
+      "melons",
+      "arbūz",
+      "watermelon",
+      "pineapple",
+      "ananas",
+      "peach",
+      "persik",
+    ],
+  },
+  drinks: {
+    title: "🥤 Gėrimai / limonadai / cola",
+    keywords: [
+      "cola",
+      "coca",
+      "lemonade",
+      "limonad",
+      "soda",
+      "fanta",
+      "sprite",
+      "energy",
+      "energetin",
+      "juice",
+      "sult",
+    ],
+  },
+  desserts: {
+    title: "🍰 Desertai & saldumynai",
+    keywords: [
+      "dessert",
+      "desert",
+      "cake",
+      "tort",
+      "donut",
+      "sprinkle",
+      "cookie",
+      "sausain",
+      "pudding",
+      "cream",
+      "vanilla",
+      "karamel",
+      "caramel",
+      "custard",
+      "sweet",
+      "sald",
+    ],
+  },
+  tobacco: {
+    title: "🌿 Tabakas / tabakas + vanilė",
+    keywords: ["tobacco", "tabak", "cigar", "virginia", "classic"],
+  },
+  ice: {
+    title: "❄️ Šaltukas / mentolis / ice",
+    keywords: ["ice", "cool", "menthol", "mint", "icy", "šalt", "mėta"],
+  },
+  bar: {
+    title: "🧪 Bar stiliaus miksai",
+    keywords: ["bar", "bar juice", "disposable", "5000", "bar style"],
+  },
+};
+
+const carts = {}; // userId -> { items: [{brand,name,price,qty}], total }
+const ordersByUser = {}; // userId -> [ {items,total,createdAt} ]
+const favoritesByUser = {}; // userId -> [{brand,name}]
 let products = {};
 const productsPath = join(__dirname, "products.json");
 
@@ -112,7 +192,7 @@ app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
-// API – pridėti produktą
+// API – pridėti produktą (admin forma)
 app.post("/api/products", (req, res) => {
   const { brand, name, description, photo_url, price } = req.body;
 
@@ -138,6 +218,166 @@ app.post("/api/products", (req, res) => {
 });
 
 // ==========================================================
+//  PAGALBINĖS FUNKCIJOS
+// ==========================================================
+
+function getOrCreateCart(userId) {
+  if (!carts[userId]) {
+    carts[userId] = { items: [], total: 0 };
+  }
+  return carts[userId];
+}
+
+function recalcTotal(cart) {
+  cart.total = cart.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+}
+
+function addToCart(cart, brand, name, price) {
+  const existing = cart.items.find(
+    (it) => it.brand === brand && it.name === name
+  );
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.items.push({ brand, name, price, qty: 1 });
+  }
+  recalcTotal(cart);
+}
+
+function changeQty(cart, brand, name, delta) {
+  const item = cart.items.find((it) => it.brand === brand && it.name === name);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart.items = cart.items.filter(
+      (it) => !(it.brand === brand && it.name === name)
+    );
+  }
+  recalcTotal(cart);
+}
+
+function deleteFromCart(cart, brand, name) {
+  cart.items = cart.items.filter(
+    (it) => !(it.brand === brand && it.name === name)
+  );
+  recalcTotal(cart);
+}
+
+// Top 10 (paima iki 10 pirmų produktų)
+function getTop10Products() {
+  const list = [];
+  for (const [brand, items] of Object.entries(products)) {
+    for (const item of items) {
+      list.push({ brand, ...item });
+    }
+  }
+  return list.slice(0, 10);
+}
+
+// Užsakymų įrašymas
+function saveOrder(userId, cart) {
+  if (!ordersByUser[userId]) ordersByUser[userId] = [];
+  ordersByUser[userId].push({
+    items: cart.items.map((it) => ({ ...it })),
+    total: cart.total,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+// Užsakymų sąrašas
+function formatOrdersList(userId) {
+  const list = ordersByUser[userId] || [];
+  if (list.length === 0) {
+    return "📦 Šiuo metu neturi išsaugotų užsakymų šio boto sesijoje.";
+  }
+
+  let out = "*Tavo užsakymai:*\n\n";
+  list.forEach((o, idx) => {
+    const date = new Date(o.createdAt).toLocaleString("lt-LT");
+    out += `#${idx + 1} – ${date} – ${o.total} €\n`;
+  });
+  out += "\nDetalios info – ateityje galėsim rodyti atskirai.";
+  return out;
+}
+
+// Produktų paieška pagal skonio kategoriją
+function getProductsByFlavorCategory(key) {
+  const cat = FLAVOR_CATEGORIES[key];
+  if (!cat) return [];
+  const keywords = cat.keywords;
+  const result = [];
+
+  for (const [brand, items] of Object.entries(products)) {
+    for (const item of items) {
+      const text = `${item.name} ${item.description}`.toLowerCase();
+      if (keywords.some((kw) => text.includes(kw))) {
+        result.push({ brand, item });
+      }
+    }
+  }
+
+  return result;
+}
+
+// Krepšelio atvaizdavimas
+async function sendCartMessage(chatId, userId) {
+  const cart = getOrCreateCart(userId);
+
+  if (cart.items.length === 0) {
+    await bot.sendMessage(chatId, "🛒 Tavo krepšelis šiuo metu tuščias.");
+    return;
+  }
+
+  let text = "*Tavo krepšelis:*\n\n";
+  cart.items.forEach((it, idx) => {
+    text += `${idx + 1}. ${it.name} (${it.brand}) – ${it.qty} vnt. x ${
+      it.price
+    } € = ${it.price * it.qty} €\n`;
+  });
+  text += `\nIš viso: *${cart.total} €*`;
+
+  const keyboard = [];
+
+  cart.items.forEach((it) => {
+    keyboard.push([
+      {
+        text: `➖`,
+        callback_data: `cart_dec_${it.brand}_${it.name}`,
+      },
+      {
+        text: `${it.name} (${it.qty} vnt.)`,
+        callback_data: "noop",
+      },
+      {
+        text: `➕`,
+        callback_data: `cart_inc_${it.brand}_${it.name}`,
+      },
+    ]);
+    keyboard.push([
+      {
+        text: "🗑 Pašalinti",
+        callback_data: `cart_del_${it.brand}_${it.name}`,
+      },
+    ]);
+  });
+
+  keyboard.push([
+    {
+      text: "✅ Patvirtinti užsakymą",
+      callback_data: `order_${cart.total}`,
+    },
+  ]);
+  keyboard.push([
+    { text: "⬅️ Į pagrindinį meniu", callback_data: "go_home" },
+  ]);
+
+  await bot.sendMessage(chatId, text, {
+    parse_mode: "Markdown",
+    reply_markup: { inline_keyboard: keyboard },
+  });
+}
+
+// ==========================================================
 //  TELEGRAM LOGIKA
 // ==========================================================
 
@@ -146,9 +386,9 @@ function sendMainMenu(chatId) {
   const text = [
     "👋 Sveiki atvykę į *VapeStore LT* nic salt e-shopą Telegram!",
     "",
-    "Prekiaujame nic salt e-skysčiais. Tik 18+ vartotojams.",
+    "Prekiaujame tik nic salt e-skysčiais. Tik 18+ vartotojams.",
     "",
-    "Pasirink, ką norėtum daryti:",
+    "Meniu:",
   ].join("\n");
 
   return bot.sendMessage(chatId, text, {
@@ -177,43 +417,6 @@ function sendMainMenu(chatId) {
   });
 }
 
-// Top 10 (paima iki 10 pirmų produktų)
-function getTop10Products() {
-  const list = [];
-  for (const [brand, items] of Object.entries(products)) {
-    for (const item of items) {
-      list.push({ brand, ...item });
-    }
-  }
-  return list.slice(0, 10);
-}
-
-// Užsakymų įrašymas
-function saveOrder(userId, cart) {
-  if (!ordersByUser[userId]) ordersByUser[userId] = [];
-  ordersByUser[userId].push({
-    items: [...cart.products],
-    total: cart.total,
-    createdAt: new Date().toISOString(),
-  });
-}
-
-// Užsakymų sąrašas
-function formatOrdersList(userId) {
-  const list = ordersByUser[userId] || [];
-  if (list.length === 0) {
-    return "📦 Šiuo metu neturi išsaugotų užsakymų šio boto sesijoje.";
-  }
-
-  let out = "*Tavo užsakymai:*\n\n";
-  list.forEach((o, idx) => {
-    const date = new Date(o.createdAt).toLocaleString("lt-LT");
-    out += `#${idx + 1} – ${date} – ${o.total} €\n`;
-  });
-  out += "\nDetalios info – ateityje galėsim rodyti atskirai.";
-  return out;
-}
-
 if (bot) {
   // Bendras log'as
   bot.on("message", (msg) => {
@@ -222,7 +425,6 @@ if (bot) {
 
   // /start – pagrindinis meniu
   bot.onText(/\/start/, (msg) => {
-    console.log("/start iš", msg.from.id);
     sendMainMenu(msg.chat.id).catch((err) =>
       console.error("NEPAVYKO IŠSIŲSTI /start ŽINUTĖS:", err.message)
     );
@@ -246,31 +448,9 @@ if (bot) {
   // /cart – krepšelis per komandą
   bot.onText(/\/cart/, (msg) => {
     const userId = msg.from.id;
-    const cart = carts[userId] || { products: [], total: 0 };
-
-    if (cart.products.length === 0) {
-      return bot.sendMessage(userId, "🛒 Tavo krepšelis šiuo metu tuščias.");
-    }
-
-    let text = `*Tavo krepšelis:*\n\n`;
-    cart.products.forEach((p) => {
-      text += `${p.name} – ${p.price} €\n`;
-    });
-    text += `\nIš viso: *${cart.total} €*`;
-
-    bot.sendMessage(userId, text, {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "✅ Patvirtinti užsakymą",
-              callback_data: `order_${cart.total}`,
-            },
-          ],
-        ],
-      },
-    });
+    sendCartMessage(msg.chat.id, userId).catch((err) =>
+      console.error("KLAIDA SIUNČIANT KREPŠELĮ:", err.message)
+    );
   });
 
   // /orders – užsakymų istorija
@@ -286,7 +466,7 @@ if (bot) {
       "💬 *Pagalba*",
       "",
       "Klausimai dėl užsakymų, asortimento ar pristatymo:",
-      "- Rašyk čia į chatą,",
+      "- Rašyk čia į chatą;",
       "- arba susisiek su adminu: @TavoKontaktas (pakeisi į savo).",
     ].join("\n");
     bot.sendMessage(msg.chat.id, text, { parse_mode: "Markdown" });
@@ -300,6 +480,12 @@ if (bot) {
     const data = q.data;
 
     try {
+      // specialus "nieko nedaryk"
+      if (data === "noop") {
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
       // 🏠 Grįžti į pagrindinį meniu
       if (data === "go_home") {
         await sendMainMenu(chatId);
@@ -336,11 +522,11 @@ if (bot) {
         return;
       }
 
-      // Nic salt – pagal skonį (kolkas tik struktūra)
+      // Nic salt – pagal skonį (kategorijų pasirinkimas)
       if (data === "nic_by_flavor") {
         await bot.sendMessage(
           chatId,
-          "🍓 Rinkis skonio kategoriją (šiuo metu filtravimas dar kuriamas – rinkis pagal brandą, jei nerandi to, ko reikia):",
+          "🍓 Rinkis skonio kategoriją:",
           {
             reply_markup: {
               inline_keyboard: [
@@ -394,36 +580,57 @@ if (bot) {
         return;
       }
 
-      // flavor kategorijos kol kas tik su informaciniu tekstu
+      // Skonio kategorijos – rodom produktų sąrašą
       if (data.startsWith("flavorcat_")) {
-        await bot.sendMessage(
-          chatId,
-          "Šiai skonių kategorijai filtravimas dar diegiamas 🔧\n\nKol kas rinkis skysčius *pagal brandą* – visi pagrindiniai nic salt brendai jau paruošti.",
-          {
-            parse_mode: "Markdown",
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text: "🧪 Rinktis pagal brandą",
-                    callback_data: "nic_by_brand",
-                  },
-                ],
-                [
-                  {
-                    text: "⬅️ Atgal",
-                    callback_data: "nic_by_flavor",
-                  },
-                ],
-              ],
+        const key = data.split("_")[1];
+        const cat = FLAVOR_CATEGORIES[key];
+        const list = getProductsByFlavorCategory(key);
+
+        if (!cat) {
+          await bot.sendMessage(
+            chatId,
+            "Šiai skonių kategorijai filtravimas dar neparuoštas."
+          );
+          await bot.answerCallbackQuery(q.id);
+          return;
+        }
+
+        if (list.length === 0) {
+          await bot.sendMessage(
+            chatId,
+            `${cat.title}\n\nŠiai kategorijai dar nepriskirta skonių. Bandyk rinktis *pagal brandą*.`,
+            { parse_mode: "Markdown" }
+          );
+        } else {
+          const keyboard = list.map(({ brand, item }) => [
+            {
+              text: `${item.name} (${brand})`,
+              callback_data: `flavor_${brand}_${item.name}`,
             },
-          }
-        );
+          ]);
+
+          keyboard.push([
+            {
+              text: "⬅️ Atgal į skonių kategorijas",
+              callback_data: "nic_by_flavor",
+            },
+          ]);
+          keyboard.push([
+            { text: "🛒 Mano krepšelis", callback_data: "open_cart" },
+          ]);
+
+          await bot.sendMessage(
+            chatId,
+            `${cat.title}\n\nPasirink skonį:`,
+            { reply_markup: { inline_keyboard: keyboard } }
+          );
+        }
+
         await bot.answerCallbackQuery(q.id);
         return;
       }
 
-      // Nic salt – pagal brandą (čia naudojam esamą logiką)
+      // Nic salt – pagal brandą
       if (data === "nic_by_brand" || data === "category_liquids") {
         const brands = Object.keys(products);
         if (brands.length === 0) {
@@ -455,38 +662,7 @@ if (bot) {
 
       // 🛒 Krepšelis
       if (data === "open_cart") {
-        const cart = carts[userId] || { products: [], total: 0 };
-
-        if (cart.products.length === 0) {
-          await bot.sendMessage(chatId, "🛒 Tavo krepšelis šiuo metu tuščias.");
-        } else {
-          let text = `*Tavo krepšelis:*\n\n`;
-          cart.products.forEach((p) => {
-            text += `${p.name} – ${p.price} €\n`;
-          });
-          text += `\nIš viso: *${cart.total} €*`;
-
-          await bot.sendMessage(chatId, text, {
-            parse_mode: "Markdown",
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text: "✅ Patvirtinti užsakymą",
-                    callback_data: `order_${cart.total}`,
-                  },
-                ],
-                [
-                  {
-                    text: "⬅️ Atgal į nic salt",
-                    callback_data: "nic_salts",
-                  },
-                ],
-              ],
-            },
-          });
-        }
-
+        await sendCartMessage(chatId, userId);
         await bot.answerCallbackQuery(q.id);
         return;
       }
@@ -549,6 +725,10 @@ if (bot) {
               text: "➕ Į krepšelį",
               callback_data: `add_${brand}_${name}`,
             },
+            {
+              text: "❤️ Į mėgstamiausius",
+              callback_data: `fav_${brand}_${name}`,
+            },
           ],
           [
             {
@@ -600,13 +780,12 @@ if (bot) {
           return;
         }
 
-        if (!carts[userId]) carts[userId] = { products: [], total: 0 };
-        carts[userId].products.push(item);
-        carts[userId].total += item.price;
+        const cart = getOrCreateCart(userId);
+        addToCart(cart, brand, name, item.price);
 
         await bot.sendMessage(
           chatId,
-          `Pridėta: *${item.name}* | Iš viso: ${carts[userId].total} €`,
+          `Pridėta: *${item.name}* | Iš viso: ${cart.total} €`,
           { parse_mode: "Markdown" }
         );
 
@@ -614,26 +793,84 @@ if (bot) {
         return;
       }
 
+      // Mėgstamiausi
+      if (data.startsWith("fav_")) {
+        const parts = data.split("_").slice(1);
+        const brand = parts[0];
+        const name = parts.slice(1).join(" ");
+
+        if (!favoritesByUser[userId]) favoritesByUser[userId] = [];
+        const exists = favoritesByUser[userId].some(
+          (f) => f.brand === brand && f.name === name
+        );
+        if (!exists) {
+          favoritesByUser[userId].push({ brand, name });
+        }
+
+        await bot.answerCallbackQuery(q.id, {
+          text: "Pridėta į mėgstamiausius ❤️",
+          show_alert: false,
+        });
+        return;
+      }
+
+      // Krepšelio +/− ir trynimas
+      if (
+        data.startsWith("cart_inc_") ||
+        data.startsWith("cart_dec_") ||
+        data.startsWith("cart_del_")
+      ) {
+        const [action, brand, ...nameParts] = data.split("_").slice(1);
+        const name = nameParts.join(" ");
+        const cart = getOrCreateCart(userId);
+
+        if (action === "inc") {
+          changeQty(cart, brand, name, 1);
+        } else if (action === "dec") {
+          changeQty(cart, brand, name, -1);
+        } else if (action === "del") {
+          deleteFromCart(cart, brand, name);
+        }
+
+        await sendCartMessage(chatId, userId);
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
       // Užsakymo patvirtinimas
       if (data.startsWith("order_")) {
-        const total = parseInt(data.split("_")[1], 10);
-        const cart = carts[userId] || { products: [], total: 0 };
-        const order = cart.products || [];
+        const cart = getOrCreateCart(userId);
+
+        if (cart.items.length === 0) {
+          await bot.sendMessage(chatId, "Krepšelis tuščias.");
+          await bot.answerCallbackQuery(q.id);
+          return;
+        }
+
+        const total = cart.total;
 
         let text = `UŽSAKYMAS:\n\n`;
-        order.forEach((p) => {
-          text += `${p.name} – ${p.price} €\n`;
+        cart.items.forEach((p) => {
+          text += `${p.name} (${p.brand}) – ${p.qty} vnt. x ${p.price} € = ${
+            p.price * p.qty
+          } €\n`;
         });
         text += `\nIš viso: ${total} €\nVartotojas: ${userId}`;
 
         await bot.sendMessage(ADMIN_ID, text);
         await bot.sendMessage(
           chatId,
-          "✅ Užsakymas išsiųstas! Su tavimi susisieksime artimiausiu metu."
+          [
+            "✅ Užsakymas išsiųstas!",
+            "",
+            "✉️ Parašyk čia savo *vardą, pavardę, pristatymo miestą ir paštomatą*.",
+            "💳 Apmokėjimo info (bankas / Revolut) bus atsiųsta asmeniškai.",
+          ].join("\n"),
+          { parse_mode: "Markdown" }
         );
 
         saveOrder(userId, cart);
-        delete carts[userId];
+        carts[userId] = { items: [], total: 0 };
 
         await bot.answerCallbackQuery(q.id);
         return;
