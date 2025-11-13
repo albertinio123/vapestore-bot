@@ -9,12 +9,15 @@ const __dirname = dirname(__filename);
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, "public")));
 
 // === BOT TOKEN ===
 const TOKEN = process.env.BOT_TOKEN;
 if (!TOKEN) {
-  console.error("FATAL: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables");
+  console.error(
+    "FATAL: BOT_TOKEN nerastas! Eik į Vercel → Settings → Environment Variables"
+  );
   process.exit(1);
 }
 console.log("BOT_TOKEN rastas:", TOKEN.substring(0, 10) + "...");
@@ -28,14 +31,14 @@ const ADMIN_ID = 112336357;
 // === EMOJI BRANDAMS ===
 const BRAND_EMOJIS = {
   "Riot Squad": "💣",
-  "IVG": "⚡️",
-  "Hayati": "🔥",
-  "Elfbar": "🧃",
+  IVG: "⚡️",
+  Hayati: "🔥",
+  Elfbar: "🧃",
   "Lost Mary": "🌸",
   "SKE Crystal": "💎",
-  "Kingston": "👑",
-  "Fantasi": "✨",
-  "Nasty Juice": "😈"
+  Kingston: "👑",
+  Fantasi: "✨",
+  "Nasty Juice": "😈",
 };
 
 const carts = {};
@@ -70,38 +73,58 @@ async function setupWebhook() {
 }
 
 // === API MARŠRUTAI (VERCEL) ===
+
+// Telegram webhook – POST iš Telegram
 app.post("/api/bot", (req, res) => {
-  console.log(
-    "GAUTAS UPDATE IŠ TELEGRAM:",
-    JSON.stringify(req.body).substring(0, 200)
-  );
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+  try {
+    console.log(
+      "GAUTAS UPDATE IŠ TELEGRAM:",
+      JSON.stringify(req.body).substring(0, 200)
+    );
+    bot.processUpdate(req.body);
+    // Telegrami svarbu gauti 200 – neduodam jokių 401
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("KLAIDA APDOROJANT UPDATE:", err);
+    // Net jei įvyko klaida, Telegram vis tiek grąžinam 200
+    return res.status(200).json({ ok: true });
+  }
 });
 
+// Sveikatos / testinis endpointas – kad GET /api/bot neduotų 401
+app.get("/api/bot", (req, res) => {
+  res.status(200).send("OK");
+});
+
+// Pagrindinis puslapis
 app.get("/", (req, res) => {
   res.send(`VapeStore botas veikia! <a href="/admin">Admin</a>`);
 });
 
+// Admin panelė
 app.get("/admin", (req, res) => {
   res.sendFile(join(__dirname, "public", "admin.html"));
 });
 
+// API – gauti produktus
 app.get("/api/products", (req, res) => {
   res.json(products);
 });
 
+// API – pridėti produktą
 app.post("/api/products", (req, res) => {
   const { brand, name, description, photo_url, price } = req.body;
+
   if (!brand || !name || !description) {
     return res.status(400).json({ error: "Trūksta duomenų" });
   }
+
   if (!products[brand]) products[brand] = [];
   products[brand].push({
     name,
     description,
     photo_url,
-    price: price || 5
+    price: price || 5,
   });
 
   try {
@@ -127,7 +150,7 @@ bot.onText(/\/start/, (msg) => {
     "",
     "Čia gali patogiai peržiūrėti populiariausius *vape e-skysčius*.",
     "",
-    "Pasirink, nuo ko norėtum pradėti:"
+    "Pasirink, nuo ko norėtum pradėti:",
   ].join("\n");
 
   bot
@@ -136,9 +159,9 @@ bot.onText(/\/start/, (msg) => {
       reply_markup: {
         inline_keyboard: [
           [{ text: "🧃 E-skysčiai (brendai)", callback_data: "category_liquids" }],
-          [{ text: "🛒 Mano krepšelis", callback_data: "open_cart" }]
-        ]
-      }
+          [{ text: "🛒 Mano krepšelis", callback_data: "open_cart" }],
+        ],
+      },
     })
     .catch((err) =>
       console.error("NEPAVYKO IŠSIŲSTI /start ŽINUTĖS:", err.message)
@@ -172,9 +195,9 @@ bot.onText(/\/cart/, (msg) => {
     parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "✅ Patvirtinti užsakymą", callback_data: `order_${cart.total}` }]
-      ]
-    }
+        [{ text: "✅ Patvirtinti užsakymą", callback_data: `order_${cart.total}` }],
+      ],
+    },
   });
 });
 
@@ -203,9 +226,9 @@ bot.on("callback_query", async (q) => {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
-          [{ text: "✅ Patvirtinti užsakymą", callback_data: `order_${cart.total}` }]
-        ]
-      }
+          [{ text: "✅ Patvirtinti užsakymą", callback_data: `order_${cart.total}` }],
+        ],
+      },
     });
   }
 
@@ -221,13 +244,13 @@ bot.on("callback_query", async (q) => {
       return [
         {
           text: `${emoji} ${b}`,
-          callback_data: `brand_${b}`
-        }
+          callback_data: `brand_${b}`,
+        },
       ];
     });
 
     return bot.sendMessage(chatId, "🧃 Pasirink e-skysčių brendą:", {
-      reply_markup: { inline_keyboard: keyboard }
+      reply_markup: { inline_keyboard: keyboard },
     });
   }
 
@@ -247,8 +270,8 @@ bot.on("callback_query", async (q) => {
     const keyboard = items.map((i) => [
       {
         text: `🔸 ${i.name}`,
-        callback_data: `flavor_${brand}_${i.name}`
-      }
+        callback_data: `flavor_${brand}_${i.name}`,
+      },
     ]);
 
     return bot.sendMessage(
@@ -256,7 +279,7 @@ bot.on("callback_query", async (q) => {
       `*${brand}* skoniai:\n\nPasirink norimą skonį, kad pamatytum aprašymą ir kainą 👇`,
       {
         parse_mode: "Markdown",
-        reply_markup: { inline_keyboard: keyboard }
+        reply_markup: { inline_keyboard: keyboard },
       }
     );
   }
@@ -275,9 +298,9 @@ bot.on("callback_query", async (q) => {
       parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: [
-          [{ text: "➕ Į krepšelį", callback_data: `add_${brand}_${name}` }]
-        ]
-      }
+          [{ text: "➕ Į krepšelį", callback_data: `add_${brand}_${name}` }],
+        ],
+      },
     });
   }
 
@@ -313,7 +336,10 @@ bot.on("callback_query", async (q) => {
     text += `\nIš viso: ${total} €\nVartotojas: ${userId}`;
 
     await bot.sendMessage(ADMIN_ID, text);
-    await bot.sendMessage(chatId, "✅ Užsakymas išsiųstas! Su tavimi susisieksime artimiausiu metu.");
+    await bot.sendMessage(
+      chatId,
+      "✅ Užsakymas išsiųstas! Su tavimi susisieksime artimiausiu metu."
+    );
 
     delete carts[userId];
   }
