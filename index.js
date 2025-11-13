@@ -90,7 +90,9 @@ app.get("/api/bot", (req, res) => {
 app.get("/", (req, res) => {
   res
     .status(200)
-    .send(`VapeStore botas veikia! <a href="/admin">Admin</a> | <a href="/api/bot">/api/bot</a>`);
+    .send(
+      `VapeStore botas veikia! <a href="/admin">Admin</a> | <a href="/api/bot">/api/bot</a>`
+    );
 });
 
 // Admin panelė
@@ -211,153 +213,229 @@ if (bot) {
     const userId = q.from.id;
     const data = q.data;
 
-    // 🛒 KREPŠELIS IŠ /START
-    if (data === "open_cart") {
-      const cart = carts[userId] || { products: [], total: 0 };
+    try {
+      // 🛒 KREPŠELIS IŠ /START
+      if (data === "open_cart") {
+        const cart = carts[userId] || { products: [], total: 0 };
 
-      if (cart.products.length === 0) {
-        return bot.sendMessage(chatId, "🛒 Tavo krepšelis šiuo metu tuščias.");
+        if (cart.products.length === 0) {
+          await bot.sendMessage(chatId, "🛒 Tavo krepšelis šiuo metu tuščias.");
+        } else {
+          let text = `*Tavo krepšelis:*\n\n`;
+          cart.products.forEach((p) => {
+            text += `${p.name} – ${p.price} €\n`;
+          });
+          text += `\nIš viso: *${cart.total} €*`;
+
+          await bot.sendMessage(chatId, text, {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "✅ Patvirtinti užsakymą",
+                    callback_data: `order_${cart.total}`,
+                  },
+                ],
+              ],
+            },
+          });
+        }
+
+        await bot.answerCallbackQuery(q.id);
+        return;
       }
 
-      let text = `*Tavo krepšelis:*\n\n`;
-      cart.products.forEach((p) => {
-        text += `${p.name} – ${p.price} €\n`;
-      });
-      text += `\nIš viso: *${cart.total} €*`;
-
-      return bot.sendMessage(chatId, text, {
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
+      // 🧃 BRANDŲ SĄRAŠAS
+      if (data === "category_liquids" || data === "list_brands") {
+        const brands = Object.keys(products);
+        if (brands.length === 0) {
+          await bot.sendMessage(chatId, "Šiuo metu prekių nėra 😔");
+        } else {
+          const keyboard = brands.map((b) => {
+            const emoji = BRAND_EMOJIS[b] || "🔹";
+            return [
               {
-                text: "✅ Patvirtinti užsakymą",
-                callback_data: `order_${cart.total}`,
+                text: `${emoji} ${b}`,
+                callback_data: `brand_${b}`,
               },
-            ],
-          ],
-        },
-      });
-    }
+            ];
+          });
 
-    // 🧃 BRANDŲ SĄRAŠAS
-    if (data === "category_liquids" || data === "list_brands") {
-      const brands = Object.keys(products);
-      if (brands.length === 0) {
-        return bot.sendMessage(chatId, "Šiuo metu prekių nėra 😔");
+          await bot.sendMessage(chatId, "🧃 Pasirink e-skysčių brendą:", {
+            reply_markup: { inline_keyboard: keyboard },
+          });
+        }
+
+        await bot.answerCallbackQuery(q.id);
+        return;
       }
 
-      const keyboard = brands.map((b) => {
-        const emoji = BRAND_EMOJIS[b] || "🔹";
-        return [
-          {
-            text: `${emoji} ${b}`,
-            callback_data: `brand_${b}`,
-          },
-        ];
-      });
+      // SKONIŲ SĄRAŠAS PASIRINKUS BRENDĄ
+      if (data.startsWith("brand_")) {
+        const brand = data.slice(6);
+        const items = products[brand] || [];
 
-      return bot.sendMessage(chatId, "🧃 Pasirink e-skysčių brendą:", {
-        reply_markup: { inline_keyboard: keyboard },
-      });
-    }
+        if (items.length === 0) {
+          await bot.sendMessage(
+            chatId,
+            `Šiuo metu iš *${brand}* skonių nėra.`,
+            { parse_mode: "Markdown" }
+          );
+        } else {
+          const keyboard = items.map((i) => [
+            {
+              text: `🔸 ${i.name}`,
+              callback_data: `flavor_${brand}_${i.name}`,
+            },
+          ]);
 
-    // SKONIŲ SĄRAŠAS PASIRINKUS BRENDĄ
-    if (data.startsWith("brand_")) {
-      const brand = data.slice(6);
-      const items = products[brand] || [];
+          await bot.sendMessage(
+            chatId,
+            `*${brand}* skoniai:\n\nPasirink norimą skonį, kad pamatytum aprašymą ir kainą 👇`,
+            {
+              parse_mode: "Markdown",
+              reply_markup: { inline_keyboard: keyboard },
+            }
+          );
+        }
 
-      if (items.length === 0) {
-        return bot.sendMessage(
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
+      // VIENO SKONIO INFORMACIJA + FOTO
+      if (data.startsWith("flavor_")) {
+        const parts = data.split("_").slice(1);
+        const brand = parts[0];
+        const name = parts.slice(1).join(" ");
+
+        const item = (products[brand] || []).find((i) => i.name === name);
+        if (!item) {
+          await bot.answerCallbackQuery(q.id);
+          return;
+        }
+
+        // jei nėra nuotraukos – iškart tekstas
+        if (!item.photo_url) {
+          await bot.sendMessage(
+            chatId,
+            `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
+            {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "➕ Į krepšelį",
+                      callback_data: `add_${brand}_${name}`,
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+        } else {
+          // bandome siųsti FOTO be Markdown (kad nelūžtų nuo simbolių)
+          try {
+            await bot.sendPhoto(chatId, item.photo_url, {
+              caption: `${item.name}\n\n${item.description}\n\nKaina: ${item.price} €`,
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "➕ Į krepšelį",
+                      callback_data: `add_${brand}_${name}`,
+                    },
+                  ],
+                ],
+              },
+            });
+          } catch (err) {
+            console.error("SENDPHOTO KLAIDA:", err.message);
+
+            // jei foto nesigavo – fallback į tekstą su Markdown
+            await bot.sendMessage(
+              chatId,
+              `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
+              {
+                parse_mode: "Markdown",
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "➕ Į krepšelį",
+                        callback_data: `add_${brand}_${name}`,
+                      },
+                    ],
+                  ],
+                },
+              }
+            );
+          }
+        }
+
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
+      // PRIDĖJIMAS Į KREPŠELĮ
+      if (data.startsWith("add_")) {
+        const parts = data.split("_").slice(1);
+        const brand = parts[0];
+        const name = parts.slice(1).join(" ");
+
+        const item = (products[brand] || []).find((i) => i.name === name);
+        if (!item) {
+          await bot.answerCallbackQuery(q.id);
+          return;
+        }
+
+        if (!carts[userId]) carts[userId] = { products: [], total: 0 };
+        carts[userId].products.push(item);
+        carts[userId].total += item.price;
+
+        await bot.sendMessage(
           chatId,
-          `Šiuo metu iš *${brand}* skonių nėra.`,
+          `Pridėta: *${item.name}* | Iš viso: ${carts[userId].total} €`,
           { parse_mode: "Markdown" }
         );
+
+        await bot.answerCallbackQuery(q.id);
+        return;
       }
 
-      const keyboard = items.map((i) => [
-        {
-          text: `🔸 ${i.name}`,
-          callback_data: `flavor_${brand}_${i.name}`,
-        },
-      ]);
+      // UŽSAKYMO PATVIRTINIMAS
+      if (data.startsWith("order_")) {
+        const total = parseInt(data.split("_")[1], 10);
+        const order = carts[userId]?.products || [];
 
-      return bot.sendMessage(
-        chatId,
-        `*${brand}* skoniai:\n\nPasirink norimą skonį, kad pamatytum aprašymą ir kainą 👇`,
-        {
-          parse_mode: "Markdown",
-          reply_markup: { inline_keyboard: keyboard },
-        }
-      );
+        let text = `UŽSAKYMAS:\n\n`;
+        order.forEach((p) => {
+          text += `${p.name} – ${p.price} €\n`;
+        });
+        text += `\nIš viso: ${total} €\nVartotojas: ${userId}`;
+
+        await bot.sendMessage(ADMIN_ID, text);
+        await bot.sendMessage(
+          chatId,
+          "✅ Užsakymas išsiųstas! Su tavimi susisieksime artimiausiu metu."
+        );
+
+        delete carts[userId];
+
+        await bot.answerCallbackQuery(q.id);
+        return;
+      }
+
+      // jei neatpažintas callback
+      await bot.answerCallbackQuery(q.id);
+    } catch (err) {
+      console.error("CALLBACK KLAIDA:", err);
+      try {
+        await bot.answerCallbackQuery(q.id);
+      } catch (e) {}
     }
-
-    // VIENO SKONIO INFORMACIJA + FOTO
-    if (data.startsWith("flavor_")) {
-      const parts = data.split("_").slice(1);
-      const brand = parts[0];
-      const name = parts.slice(1).join(" ");
-
-      const item = (products[brand] || []).find((i) => i.name === name);
-      if (!item) return;
-
-      await bot.sendPhoto(chatId, item.photo_url, {
-        caption: `*${item.name}*\n\n${item.description}\n\nKaina: *${item.price} €*`,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "➕ Į krepšelį",
-                callback_data: `add_${brand}_${name}`,
-              },
-            ],
-          ],
-        },
-      });
-    }
-
-    // PRIDĖJIMAS Į KREPŠELĮ
-    if (data.startsWith("add_")) {
-      const parts = data.split("_").slice(1);
-      const brand = parts[0];
-      const name = parts.slice(1).join(" ");
-
-      const item = (products[brand] || []).find((i) => i.name === name);
-      if (!item) return;
-
-      if (!carts[userId]) carts[userId] = { products: [], total: 0 };
-      carts[userId].products.push(item);
-      carts[userId].total += item.price;
-
-      return bot.sendMessage(
-        chatId,
-        `Pridėta: *${item.name}* | Iš viso: ${carts[userId].total} €`,
-        { parse_mode: "Markdown" }
-      );
-    }
-
-    // UŽSAKYMO PATVIRTINIMAS
-    if (data.startsWith("order_")) {
-      const total = parseInt(data.split("_")[1], 10);
-      const order = carts[userId]?.products || [];
-
-      let text = `UŽSAKYMAS:\n\n`;
-      order.forEach((p) => {
-        text += `${p.name} – ${p.price} €\n`;
-      });
-      text += `\nIš viso: ${total} €\nVartotojas: ${userId}`;
-
-      await bot.sendMessage(ADMIN_ID, text);
-      await bot.sendMessage(
-        chatId,
-        "✅ Užsakymas išsiųstas! Su tavimi susisieksime artimiausiu metu."
-      );
-
-      delete carts[userId];
-    }
-
-    bot.answerCallbackQuery(q.id);
   });
 }
 
